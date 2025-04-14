@@ -1,29 +1,40 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
+import { type ProductPricing } from "@/data/products";
 
 interface ProductCardProps {
   id: number;
   name: string;
-  price: number;
-  weight: string;
+  pricing: ProductPricing[];
   description: string;
   image: string;
 }
 
-const ProductCard = ({ id, name, price, weight, description, image }: ProductCardProps) => {
+const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps) => {
   const { toast } = useToast();
   const { addToCart } = useCart();
+  const [selectedWeight, setSelectedWeight] = useState<string>(pricing[0].weight);
+
+  const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0];
 
   const handleAddToCart = () => {
-    addToCart({ id, name, price, weight, image });
+    addToCart({ 
+      id, 
+      name, 
+      price: selectedPricing.price,
+      weight: selectedWeight,
+      image 
+    });
     
     toast({
       title: "Added to cart",
-      description: `${name} has been added to your cart.`,
+      description: `${name} (${selectedWeight}) has been added to your cart.`,
     });
   };
 
@@ -42,9 +53,23 @@ const ProductCard = ({ id, name, price, weight, description, image }: ProductCar
         <Link to={`/product/${id}`}>
           <CardTitle className="font-playfair mb-2 text-primary hover:text-primary/80">{name}</CardTitle>
         </Link>
-        <p className="text-sm text-gray-600 mb-2">{description}</p>
-        <div className="flex justify-between items-center">
-          <p className="font-bold text-primary">₹{price.toFixed(2)} <span className="text-sm font-normal text-gray-500">/ {weight}</span></p>
+        <p className="text-sm text-gray-600 mb-4">{description}</p>
+        <div className="flex justify-between items-center gap-4">
+          <div className="flex-1">
+            <Select value={selectedWeight} onValueChange={setSelectedWeight}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select weight" />
+              </SelectTrigger>
+              <SelectContent>
+                {pricing.map((price) => (
+                  <SelectItem key={price.weight} value={price.weight}>
+                    {price.weight} - ₹{price.price}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="font-bold text-primary whitespace-nowrap">₹{selectedPricing.price}</p>
         </div>
       </CardContent>
       <CardFooter className="flex gap-2">

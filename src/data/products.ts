@@ -1,9 +1,12 @@
+export interface ProductPricing {
+  weight: string;
+  price: number;
+}
 
 export interface Product {
   id: number;
   name: string;
-  price: number;
-  weight: string;
+  pricing: ProductPricing[];
   description: string;
   longDescription: string;
   ingredients: string[];
@@ -18,8 +21,11 @@ const products: Product[] = [
   {
     id: 1,
     name: "Avakaya Pickle",
-    price: 299,
-    weight: "500g",
+    pricing: [
+      { weight: "250g", price: 199 },
+      { weight: "500g", price: 299 },
+      { weight: "1kg", price: 549 }
+    ],
     description: "Traditional raw mango pickle with mustard and chili. A Telugu household favorite.",
     longDescription: "Our signature Avakaya is made from handpicked raw mangoes, sun-dried red chilies, and premium mustard, following an authentic family recipe that has been passed down through generations. Each jar is carefully prepared to ensure that perfect balance of tangy, spicy flavors that makes Avakaya the king of Telugu pickles.",
     ingredients: ["Raw Mangoes", "Mustard Seeds", "Chili Powder", "Sesame Oil", "Fenugreek Seeds", "Salt", "Turmeric"],
@@ -32,8 +38,11 @@ const products: Product[] = [
   {
     id: 2,
     name: "Gongura Pickle",
-    price: 349,
-    weight: "500g",
+    pricing: [
+      { weight: "250g", price: 249 },
+      { weight: "500g", price: 349 },
+      { weight: "1kg", price: 649 }
+    ],
     description: "Tangy sorrel leaves pickle with a perfect balance of spices that complements rice perfectly.",
     longDescription: "Our Gongura pickle is a true Andhra delicacy made from fresh sorrel leaves harvested at peak season. The leaves are hand-sorted, chopped, and mixed with specially ground spices to create that distinctive tangy flavor. This pickle is the perfect accompaniment to plain rice with a dollop of ghee or with hot rotis.",
     ingredients: ["Gongura Leaves (Sorrel)", "Red Chilies", "Garlic", "Mustard Seeds", "Sesame Oil", "Salt", "Turmeric"],
@@ -46,8 +55,11 @@ const products: Product[] = [
   {
     id: 3,
     name: "Tomato Pickle",
-    price: 249,
-    weight: "500g",
+    pricing: [
+      { weight: "250g", price: 149 },
+      { weight: "500g", price: 249 },
+      { weight: "1kg", price: 449 }
+    ],
     description: "Sweet and tangy tomato pickle made with ripe tomatoes and aromatic spices.",
     longDescription: "Our Tomato pickle combines the tanginess of vine-ripened tomatoes with the sweetness of jaggery and warmth of carefully selected spices. Slow-cooked to perfection, this pickle delivers a burst of flavors in every bite and pairs wonderfully with a variety of Indian breads and rice dishes.",
     ingredients: ["Ripe Tomatoes", "Jaggery", "Red Chilies", "Mustard Seeds", "Fenugreek Seeds", "Sesame Oil", "Salt"],
@@ -60,8 +72,11 @@ const products: Product[] = [
   {
     id: 4,
     name: "Lemon Pickle",
-    price: 299,
-    weight: "500g",
+    pricing: [
+      { weight: "250g", price: 199 },
+      { weight: "500g", price: 299 },
+      { weight: "1kg", price: 549 }
+    ],
     description: "Zesty and tangy lemon pickle that adds a burst of flavor to any meal.",
     longDescription: "Our Lemon pickle features organically grown lemons that are cured in salt and then mixed with aromatic spices. The pickling process allows the lemons to develop complex flavors while maintaining their zesty character. This pickle is a refreshing accompaniment to many meals and helps aid digestion.",
     ingredients: ["Lemons", "Salt", "Red Chili Powder", "Mustard Seeds", "Fenugreek Seeds", "Turmeric", "Asafoetida"],
@@ -74,8 +89,11 @@ const products: Product[] = [
   {
     id: 5,
     name: "Green Chili Pickle",
-    price: 279,
-    weight: "500g",
+    pricing: [
+      { weight: "250g", price: 179 },
+      { weight: "500g", price: 279 },
+      { weight: "1kg", price: 499 }
+    ],
     description: "Fiery green chili pickle for those who love extra heat in their meals.",
     longDescription: "This specialty Green Chili Pickle is crafted for those who appreciate heat. Made with fresh green chilies and a special blend of spices, it delivers a powerful punch of flavor and spice that elevates simple meals. The chilies are handpicked at just the right stage of maturity to ensure optimal heat and flavor.",
     ingredients: ["Green Chilies", "Mustard Seeds", "Garlic", "Ginger", "Sesame Oil", "Salt", "Turmeric", "Fenugreek Seeds"],
@@ -88,8 +106,11 @@ const products: Product[] = [
   {
     id: 6,
     name: "Tamarind Pickle",
-    price: 269,
-    weight: "500g",
+    pricing: [
+      { weight: "250g", price: 169 },
+      { weight: "500g", price: 269 },
+      { weight: "1kg", price: 479 }
+    ],
     description: "Sweet and sour tamarind pickle with jaggery and mild spices. Perfect for those who prefer less heat.",
     longDescription: "Our Tamarind Pickle blends the natural sourness of tamarind with the sweetness of jaggery, creating a perfect balance of flavors. This pickle is milder than most, making it suitable for those who enjoy the tangy taste but prefer less spicy food. It's a wonderful addition to simple meals and helps stimulate the appetite.",
     ingredients: ["Tamarind", "Jaggery", "Mild Red Chilies", "Mustard Seeds", "Sesame Oil", "Salt", "Turmeric"],
