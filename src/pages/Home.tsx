@@ -1,7 +1,7 @@
-
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
 import TestimonialCard from "@/components/TestimonialCard";
+import Categories from "@/components/Categories";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import products from "@/data/products";
@@ -45,6 +45,19 @@ const Home = () => {
           </div>
         </div>
         <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-amber-50/80 to-transparent"></div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="bg-white py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="font-playfair text-3xl font-bold text-primary mb-2 text-center">
+            Browse by Category
+          </h2>
+          <p className="text-gray-700 mb-10 text-center max-w-2xl mx-auto">
+            Explore our diverse collection of handcrafted pickles
+          </p>
+          <Categories />
+        </div>
       </section>
 
       {/* About Brief Section */}
