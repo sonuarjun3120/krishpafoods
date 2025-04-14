@@ -6,11 +6,13 @@ import products from "@/data/products";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import ProductCard from "@/components/ProductCard";
+import { useCart } from "@/context/CartContext";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
   
   const product = products.find(p => p.id === Number(id));
   
@@ -29,6 +31,11 @@ const ProductDetail = () => {
   }
 
   const handleAddToCart = () => {
+    // Add product with selected quantity
+    for (let i = 0; i < quantity; i++) {
+      addToCart(product);
+    }
+    
     toast({
       title: "Added to cart",
       description: `${quantity} x ${product.name} has been added to your cart.`,

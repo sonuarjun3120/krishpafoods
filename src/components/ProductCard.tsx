@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { useCart } from "@/context/CartContext";
 
 interface ProductCardProps {
   id: number;
@@ -15,8 +16,11 @@ interface ProductCardProps {
 
 const ProductCard = ({ id, name, price, weight, description, image }: ProductCardProps) => {
   const { toast } = useToast();
+  const { addToCart } = useCart();
 
   const handleAddToCart = () => {
+    addToCart({ id, name, price, weight, image });
+    
     toast({
       title: "Added to cart",
       description: `${name} has been added to your cart.`,

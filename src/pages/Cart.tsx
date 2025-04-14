@@ -1,43 +1,12 @@
 
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Trash2 } from "lucide-react";
-
-// Mock cart data for demo purposes
-const initialCartItems = [
-  {
-    id: 1,
-    name: "Avakaya Pickle",
-    price: 299,
-    weight: "500g",
-    image: "https://images.unsplash.com/photo-1589216532372-1c2a367900d9",
-    quantity: 1
-  },
-  {
-    id: 2,
-    name: "Gongura Pickle",
-    price: 349,
-    weight: "500g",
-    image: "https://images.unsplash.com/photo-1589556223844-cbfb15a21f26",
-    quantity: 2
-  }
-];
+import { useCart } from "@/context/CartContext";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState(initialCartItems);
-
-  const removeItem = (id: number) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-  };
-
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    setCartItems(cartItems.map(item => 
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    ));
-  };
+  const { cartItems, removeItem, updateQuantity, clearCart } = useCart();
 
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -143,7 +112,7 @@ const Cart = () => {
                 <Button 
                   variant="outline" 
                   className="border-primary text-primary hover:bg-primary/10"
-                  onClick={() => setCartItems([])}
+                  onClick={clearCart}
                 >
                   Clear Cart
                 </Button>
