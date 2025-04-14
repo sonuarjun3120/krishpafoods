@@ -6,7 +6,7 @@ import { Trash2 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 const Cart = () => {
-  const { cartItems, removeItem, updateQuantity, clearCart } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
 
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -92,7 +92,7 @@ const Cart = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button 
                             className="text-red-600 hover:text-red-900"
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => removeFromCart(item.id)}
                           >
                             <Trash2 size={18} />
                           </button>
