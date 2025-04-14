@@ -9,6 +9,7 @@ const products = [
     price: 8.99,
     description: "Crisp cucumbers in a traditional dill brine. A timeless favorite!",
     image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
+    weight: "250g", // Added weight property
   },
   {
     id: 2,
@@ -16,6 +17,7 @@ const products = [
     price: 9.99,
     description: "A fiery blend of garlic and chili peppers. Not for the faint of heart!",
     image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901",
+    weight: "250g", // Added weight property
   },
   {
     id: 3,
@@ -23,6 +25,7 @@ const products = [
     price: 7.99,
     description: "Sweet and tangy slices perfect for sandwiches and burgers.",
     image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+    weight: "250g", // Added weight property
   },
 ];
 
