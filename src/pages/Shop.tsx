@@ -1,0 +1,78 @@
+
+import Layout from "@/components/Layout";
+import ProductCard from "@/components/ProductCard";
+import products from "@/data/products";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const Shop = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [spiceFilter, setSpiceFilter] = useState("all");
+  
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesSpice = spiceFilter === "all" || product.spiceLevel.toLowerCase() === spiceFilter.toLowerCase();
+    
+    return matchesSearch && matchesSpice;
+  });
+
+  return (
+    <Layout>
+      <div className="container mx-auto px-4 py-12">
+        <h1 className="font-playfair text-4xl font-bold text-primary mb-8 text-center">
+          Our Pickle Collection
+        </h1>
+        
+        <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Search Products</label>
+              <Input
+                id="search"
+                type="text"
+                placeholder="Search by name or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="spice-level" className="block text-sm font-medium text-gray-700 mb-1">Spice Level</label>
+              <Select value={spiceFilter} onValueChange={setSpiceFilter}>
+                <SelectTrigger id="spice-level">
+                  <SelectValue placeholder="All Spice Levels" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Spice Levels</SelectItem>
+                  <SelectItem value="mild">Mild</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hot">Hot</SelectItem>
+                  <SelectItem value="extra hot">Extra Hot</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map(product => (
+              <ProductCard key={product.id} {...product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-medium text-gray-700 mb-2">No products found</h3>
+            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+          </div>
+        )}
+      </div>
+    </Layout>
+  );
+};
+
+export default Shop;

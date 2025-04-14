@@ -26,12 +26,12 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#2D5A27",
+          DEFAULT: "#8B4513",
           foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "#E7F3EC",
-          foreground: "#2D5A27",
+          DEFAULT: "#FFF8F0",
+          foreground: "#8B4513",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
