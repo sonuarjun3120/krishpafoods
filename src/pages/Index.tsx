@@ -1,35 +1,12 @@
 
 import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard";
-
-const products = [
-  {
-    id: 1,
-    name: "Classic Dill Pickles",
-    price: 8.99,
-    description: "Crisp cucumbers in a traditional dill brine. A timeless favorite!",
-    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9",
-    weight: "250g", // Added weight property
-  },
-  {
-    id: 2,
-    name: "Spicy Garlic Pickles",
-    price: 9.99,
-    description: "A fiery blend of garlic and chili peppers. Not for the faint of heart!",
-    image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901",
-    weight: "250g", // Added weight property
-  },
-  {
-    id: 3,
-    name: "Bread & Butter Pickles",
-    price: 7.99,
-    description: "Sweet and tangy slices perfect for sandwiches and burgers.",
-    image: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
-    weight: "250g", // Added weight property
-  },
-];
+import products from "@/data/products";
 
 const Index = () => {
+  // Use the first 3 products from our products data
+  const featuredProducts = products.slice(0, 3);
+
   return (
     <div className="min-h-screen bg-secondary/20">
       <Navbar />
@@ -44,8 +21,15 @@ const Index = () => {
           </p>
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <ProductCard key={product.id} {...product} />
+          {featuredProducts.map((product) => (
+            <ProductCard 
+              key={product.id}
+              id={product.id}
+              name={product.name}
+              pricing={product.pricing}
+              description={product.description}
+              image={product.image}
+            />
           ))}
         </div>
       </main>

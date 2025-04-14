@@ -7,11 +7,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import { useCart } from "@/context/CartContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
+  const [selectedWeight, setSelectedWeight] = useState<string>("");
   const { addToCart } = useCart();
   
   const product = products.find(p => p.id === Number(id));
@@ -30,15 +32,28 @@ const ProductDetail = () => {
     );
   }
 
+  // Initialize selectedWeight if not set
+  if (!selectedWeight && product.pricing.length > 0) {
+    setSelectedWeight(product.pricing[0].weight);
+  }
+
+  const selectedPricing = product.pricing.find(p => p.weight === selectedWeight) || product.pricing[0];
+
   const handleAddToCart = () => {
-    // Add product with selected quantity
+    // Add product with selected quantity and weight
     for (let i = 0; i < quantity; i++) {
-      addToCart(product);
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: selectedPricing.price,
+        weight: selectedPricing.weight,
+        image: product.image
+      });
     }
     
     toast({
       title: "Added to cart",
-      description: `${quantity} x ${product.name} has been added to your cart.`,
+      description: `${quantity} x ${product.name} (${selectedPricing.weight}) has been added to your cart.`,
     });
   };
 
@@ -77,9 +92,25 @@ const ProductDetail = () => {
               <span className="text-gray-600 text-sm">(32 reviews)</span>
             </div>
             
-            <p className="text-xl font-bold text-primary mb-4">
-              ₹{product.price.toFixed(2)} <span className="text-sm font-normal text-gray-500">/ {product.weight}</span>
-            </p>
+            {/* Weight/Price Selection */}
+            <div className="mb-4">
+              <Select value={selectedWeight} onValueChange={setSelectedWeight}>
+                <SelectTrigger className="w-full mb-2">
+                  <SelectValue placeholder="Select weight" />
+                </SelectTrigger>
+                <SelectContent>
+                  {product.pricing.map((price) => (
+                    <SelectItem key={price.weight} value={price.weight}>
+                      {price.weight} - ₹{price.price}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <p className="text-xl font-bold text-primary">
+                ₹{selectedPricing.price.toFixed(2)} <span className="text-sm font-normal text-gray-500">/ {selectedPricing.weight}</span>
+              </p>
+            </div>
             
             <p className="text-gray-700 mb-6">{product.longDescription}</p>
             
@@ -172,7 +203,14 @@ const ProductDetail = () => {
           <h2 className="font-playfair text-2xl font-bold text-primary mb-6">You May Also Like</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {relatedProducts.map(product => (
-              <ProductCard key={product.id} {...product} />
+              <ProductCard 
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                pricing={product.pricing}
+                description={product.description}
+                image={product.image}
+              />
             ))}
           </div>
         </div>
