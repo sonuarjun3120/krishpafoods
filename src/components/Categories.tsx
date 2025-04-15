@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { LucideSalad, Beef, UtensilsCrossed } from "lucide-react";
 
@@ -32,34 +31,30 @@ const Categories = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Left side - Vegetarian category */}
-      <div className="flex flex-col gap-6">
-        <Link 
-          to={categories[0].link}
-          className="relative overflow-hidden rounded-2xl group h-[400px] transition-transform hover:scale-[1.02] duration-300"
-        >
-          <img
-            src={categories[0].image}
-            alt={categories[0].name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex flex-col justify-end p-6">
-            <div className="flex items-center gap-2 text-white mb-2">
-              {categories[0].icon}
-              <h3 className="text-2xl font-playfair font-bold">{categories[0].name}</h3>
-            </div>
-            <p className="text-white/90">{categories[0].description}</p>
+      <Link 
+        to={categories[0].link}
+        className="relative overflow-hidden rounded-2xl group h-[400px] transition-transform hover:scale-[1.02] duration-300"
+      >
+        <img
+          src={categories[0].image}
+          alt={categories[0].name}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex flex-col justify-end p-6">
+          <div className="flex items-center gap-2 text-white mb-2">
+            {categories[0].icon}
+            <h3 className="text-2xl font-playfair font-bold">{categories[0].name}</h3>
           </div>
-        </Link>
-      </div>
+          <p className="text-white/90">{categories[0].description}</p>
+        </div>
+      </Link>
 
-      {/* Right side - Non-veg and Combo categories */}
-      <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 h-[400px]">
         {categories.slice(1).map((category) => (
           <Link
             key={category.id}
             to={category.link}
-            className="relative overflow-hidden rounded-2xl group h-[192px] transition-transform hover:scale-[1.02] duration-300"
+            className="relative overflow-hidden rounded-2xl group transition-transform hover:scale-[1.02] duration-300"
           >
             <img
               src={category.image}
