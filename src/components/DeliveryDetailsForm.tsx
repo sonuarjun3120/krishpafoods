@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Globe, MapPin } from "lucide-react"
 import {
   Form,
   FormControl,
@@ -12,16 +13,36 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const formSchema = z.object({
   streetAddress: z.string().min(5, "Street address must be at least 5 characters"),
   city: z.string().min(2, "City must be at least 2 characters"),
-  state: z.string().min(2, "State must be at least 2 characters"),
-  pincode: z.string().length(6, "Pincode must be 6 digits"),
+  state: z.string().min(2, "State/Province must be at least 2 characters"),
+  country: z.string().min(2, "Please select a country"),
+  postalCode: z.string().min(3, "Postal/ZIP code is required"),
   landmark: z.string().optional(),
   mobileNumber: z.string()
-    .regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit Indian mobile number")
+    .regex(/^\+?[1-9]\d{6,14}$/, "Please enter a valid international phone number with country code")
 })
+
+const countries = [
+  { value: "us", label: "United States" },
+  { value: "ca", label: "Canada" },
+  { value: "gb", label: "United Kingdom" },
+  { value: "au", label: "Australia" },
+  { value: "de", label: "Germany" },
+  { value: "fr", label: "France" },
+  { value: "jp", label: "Japan" },
+  { value: "in", label: "India" },
+  { value: "other", label: "Other" },
+]
 
 export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<typeof formSchema>) => void }) {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -30,7 +51,8 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
       streetAddress: "",
       city: "",
       state: "",
-      pincode: "",
+      country: "",
+      postalCode: "",
       landmark: "",
       mobileNumber: "",
     },
@@ -39,6 +61,38 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Globe className="w-5 h-5 text-primary" />
+          <h2 className="font-playfair text-xl font-bold text-primary">
+            International Delivery
+          </h2>
+        </div>
+
+        <FormField
+          control={form.control}
+          name="country"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Country</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your country" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {countries.map((country) => (
+                    <SelectItem key={country.value} value={country.value}>
+                      {country.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="streetAddress"
@@ -73,9 +127,9 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
             name="state"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>State</FormLabel>
+                <FormLabel>State/Province</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your state" {...field} />
+                  <Input placeholder="Enter state/province" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -86,12 +140,12 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="pincode"
+            name="postalCode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Pincode</FormLabel>
+                <FormLabel>Postal/ZIP Code</FormLabel>
                 <FormControl>
-                  <Input type="text" maxLength={6} placeholder="Enter pincode" {...field} />
+                  <Input placeholder="Enter postal/ZIP code" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -107,8 +161,7 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
                 <FormControl>
                   <Input 
                     type="tel" 
-                    maxLength={10} 
-                    placeholder="Enter 10-digit mobile number" 
+                    placeholder="Enter number with country code" 
                     {...field} 
                   />
                 </FormControl>
