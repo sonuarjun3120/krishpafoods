@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Form,
   FormControl,
@@ -20,6 +19,8 @@ const formSchema = z.object({
   state: z.string().min(2, "State must be at least 2 characters"),
   pincode: z.string().length(6, "Pincode must be 6 digits"),
   landmark: z.string().optional(),
+  mobileNumber: z.string()
+    .regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit Indian mobile number")
 })
 
 export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<typeof formSchema>) => void }) {
@@ -31,6 +32,7 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
       state: "",
       pincode: "",
       landmark: "",
+      mobileNumber: "",
     },
   })
 
@@ -98,18 +100,39 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
 
           <FormField
             control={form.control}
-            name="landmark"
+            name="mobileNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Landmark (Optional)</FormLabel>
+                <FormLabel>Mobile Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter a landmark" {...field} />
+                  <Input 
+                    type="tel" 
+                    maxLength={10} 
+                    placeholder="Enter 10-digit mobile number" 
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="landmark"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Landmark (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter a landmark" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full">Save Delivery Details</Button>
       </form>
     </Form>
   )

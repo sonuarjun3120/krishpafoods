@@ -1,3 +1,4 @@
+
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -28,8 +29,10 @@ const Cart = () => {
     toast({
       title: "Delivery Details Saved",
       description: "Your delivery information has been saved successfully.",
+      variant: "default"
     });
     console.log("Delivery details:", values);
+    // You might want to store these details in a state or context for further processing
   };
 
   return (
