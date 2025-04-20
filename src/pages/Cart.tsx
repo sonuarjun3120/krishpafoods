@@ -1,4 +1,3 @@
-
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -7,9 +6,11 @@ import { useCart } from "@/context/CartContext";
 import { DeliveryDetailsForm } from "@/components/DeliveryDetailsForm";
 import { toast } from "@/hooks/use-toast";
 import { MapPin } from "lucide-react";
+import React from "react";
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
+  const [deliveryType, setDeliveryType] = React.useState<"international">("international");
 
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -135,13 +136,29 @@ const Cart = () => {
 
             <div className="lg:w-1/3 space-y-6">
               <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <h2 className="font-playfair text-xl font-bold text-primary">
-                    Delivery Details
-                  </h2>
+                <div className="flex flex-col gap-4 mb-4">
+                  <div className="flex gap-2">
+                    <Button
+                      variant={deliveryType === "international" ? "default" : "outline"}
+                      className={`w-1/2 ${deliveryType === "international" ? "" : "border-primary text-primary hover:bg-primary/10"}`}
+                      onClick={() => setDeliveryType("international")}
+                    >
+                      International Delivery
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-1/2 border-primary text-primary hover:bg-primary/10"
+                      disabled
+                    >
+                      Domestic Delivery
+                    </Button>
+                  </div>
                 </div>
-                <DeliveryDetailsForm onSubmit={handleDeliverySubmit} />
+                {deliveryType === "international" && (
+                  <>
+                    <DeliveryDetailsForm onSubmit={handleDeliverySubmit} />
+                  </>
+                )}
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-sm">
