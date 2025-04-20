@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import React from "react"
+import React, { useState } from "react"
+import SelectLocationMap from "./SelectLocationMap"
 
 const formSchema = z.object({
   recipientName: z.string().min(2, "Recipient name must be at least 2 characters"),
@@ -71,208 +72,204 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
     },
   });
 
+  const [showMap, setShowMap] = useState(false);
   const country = form.watch("country");
 
   const handleUseLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser.");
-      return;
+    setShowMap(true);
+  };
+
+  const handleLocationSelect = (address: any) => {
+    const { city, town, village, state, country, country_code, postcode } = address;
+    form.setValue("city", city || town || village || "");
+    form.setValue("state", state || "");
+    const found = countries.find(
+      c => c.label.toLowerCase() === (country || "").toLowerCase() ||
+        c.value === (country_code || "").toLowerCase()
+    );
+    form.setValue("country", found ? found.value : "other");
+    if (!found && country) {
+      form.setValue("manualCountry", country);
     }
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const { latitude, longitude } = position.coords;
-      try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
-        const data = await response.json();
-        if (data.address) {
-          const { city, town, village, state, country, country_code, postcode } = data.address;
-          form.setValue("city", city || town || village || "");
-          form.setValue("state", state || "");
-          const found = countries.find(
-            c => c.label.toLowerCase() === (country || "").toLowerCase() ||
-              c.value === (country_code || "").toLowerCase()
-          );
-          form.setValue("country", found ? found.value : "other");
-          if (!found && country) {
-            form.setValue("manualCountry", country);
-          }
-          form.setValue("postalCode", postcode || "");
-        }
-      } catch (e) {
-        alert("Unable to fetch address from your location.");
-      }
-    }, () => {
-      alert("Unable to retrieve your location.");
-    });
+    form.setValue("postalCode", postcode || "");
   };
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const exported = {
       ...values,
       country: values.country === "other" ? values.manualCountry : countries.find(c => c.value === values.country)?.label || "",
-    }
-    onSubmit(exported)
-  }
+    };
+    onSubmit(exported);
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Globe className="w-5 h-5 text-primary" />
-          <h2 className="font-playfair text-xl font-bold text-primary">
-            International Delivery
-          </h2>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="flex items-center gap-2 mb-2"
-          onClick={handleUseLocation}
-        >
-          <Locate className="w-4 h-4" /> Use My Location
-        </Button>
-        <FormField
-          control={form.control}
-          name="recipientName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Recipient Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter the recipient's name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Globe className="w-5 h-5 text-primary" />
+            <h2 className="font-playfair text-xl font-bold text-primary">
+              International Delivery
+            </h2>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="flex items-center gap-2 mb-2"
+            onClick={handleUseLocation}
+          >
+            <Locate className="w-4 h-4" /> Use My Location
+          </Button>
+          <FormField
+            control={form.control}
+            name="recipientName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Recipient Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter the recipient's name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Country</FormLabel>
+                <Select onValueChange={(v) => {
+                  field.onChange(v);
+                  if (v !== "other") form.setValue("manualCountry", "");
+                }} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your country" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country.value} value={country.value}>
+                        {country.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {country === "other" && (
+            <FormField
+              control={form.control}
+              name="manualCountry"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your country name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
+          <FormField
+            control={form.control}
+            name="streetAddress"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Street Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your street address" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>City</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your city" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State/Province</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter state/province" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="postalCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Postal/ZIP Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter postal/ZIP code" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="mobileNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mobile Number</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="tel" 
+                      placeholder="Enter number with country code" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <FormField
+            control={form.control}
+            name="landmark"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Landmark (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter a landmark" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="w-full">Save Delivery Details</Button>
+        </form>
+      </Form>
+      {showMap && (
+        <SelectLocationMap
+          onClose={() => setShowMap(false)}
+          onSelect={handleLocationSelect}
         />
-        <FormField
-          control={form.control}
-          name="country"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Country</FormLabel>
-              <Select onValueChange={(v) => {
-                field.onChange(v);
-                if (v !== "other") form.setValue("manualCountry", "");
-              }} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your country" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {countries.map((country) => (
-                    <SelectItem key={country.value} value={country.value}>
-                      {country.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {country === "other" && (
-          <FormField
-            control={form.control}
-            name="manualCountry"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Country Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your country name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-        <FormField
-          control={form.control}
-          name="streetAddress"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Street Address</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your street address" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="city"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>City</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your city" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="state"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>State/Province</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter state/province" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="postalCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Postal/ZIP Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter postal/ZIP code" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="mobileNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mobile Number</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="tel" 
-                    placeholder="Enter number with country code" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <FormField
-          control={form.control}
-          name="landmark"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Landmark (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter a landmark" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" className="w-full">Save Delivery Details</Button>
-      </form>
-    </Form>
-  )
+      )}
+    </>
+  );
 }
