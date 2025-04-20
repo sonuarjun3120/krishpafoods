@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Globe, MapPin } from "lucide-react"
+import { Globe } from "lucide-react"
 import {
   Form,
   FormControl,
@@ -20,17 +20,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import React from "react"
 
 const formSchema = z.object({
+  recipientName: z.string().min(2, "Recipient name must be at least 2 characters"),
   streetAddress: z.string().min(5, "Street address must be at least 5 characters"),
   city: z.string().min(2, "City must be at least 2 characters"),
   state: z.string().min(2, "State/Province must be at least 2 characters"),
   country: z.string().min(2, "Please select a country"),
+  manualCountry: z.string().optional(), // used if country is "other"
   postalCode: z.string().min(3, "Postal/ZIP code is required"),
   landmark: z.string().optional(),
   mobileNumber: z.string()
     .regex(/^\+?[1-9]\d{6,14}$/, "Please enter a valid international phone number with country code")
-})
+}).refine(
+  (data) => {
+    // If country is "other", manualCountry must be present/min 2 chars
+    if (data.country === "other") return data.manualCountry && data.manualCountry.length > 1
+    return true
+  },
+  {
+    message: "Please enter country name",
+    path: ["manualCountry"]
+  }
+);
 
 const countries = [
   { value: "us", label: "United States" },
@@ -42,39 +55,68 @@ const countries = [
   { value: "jp", label: "Japan" },
   { value: "in", label: "India" },
   { value: "other", label: "Other" },
-]
+];
 
 export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<typeof formSchema>) => void }) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      recipientName: "",
       streetAddress: "",
       city: "",
       state: "",
       country: "",
+      manualCountry: "",
       postalCode: "",
       landmark: "",
       mobileNumber: "",
     },
-  })
+  });
+
+  const country = form.watch("country");
+
+  // Final submit: adjust payload so that if 'other', 'country' = manualCountry
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const exported = {
+      ...values,
+      country: values.country === "other" ? values.manualCountry : countries.find(c => c.value === values.country)?.label || "",
+    }
+    onSubmit(exported)
+  }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
           <Globe className="w-5 h-5 text-primary" />
           <h2 className="font-playfair text-xl font-bold text-primary">
             International Delivery
           </h2>
         </div>
-
+        <FormField
+          control={form.control}
+          name="recipientName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Recipient Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter the recipient's name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="country"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Country</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={(v) => {
+                field.onChange(v);
+                // Reset manualCountry if not 'other'
+                if (v !== "other") form.setValue("manualCountry", "");
+              }} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your country" />
@@ -92,7 +134,22 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
             </FormItem>
           )}
         />
-
+        {/* Manually entered country name, only if 'other' selected */}
+        {country === "other" && (
+          <FormField
+            control={form.control}
+            name="manualCountry"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Country Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your country name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="streetAddress"
@@ -106,7 +163,6 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
             </FormItem>
           )}
         />
-
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -121,7 +177,6 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="state"
@@ -136,7 +191,6 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
             )}
           />
         </div>
-
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -151,7 +205,6 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="mobileNumber"
@@ -170,7 +223,6 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
             )}
           />
         </div>
-
         <FormField
           control={form.control}
           name="landmark"
@@ -184,7 +236,6 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
             </FormItem>
           )}
         />
-
         <Button type="submit" className="w-full">Save Delivery Details</Button>
       </form>
     </Form>
