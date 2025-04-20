@@ -1,10 +1,9 @@
-
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Globe } from "lucide-react"
+import { Globe, Locate } from "lucide-react"
 import {
   Form,
   FormControl,
@@ -35,7 +34,6 @@ const formSchema = z.object({
     .regex(/^\+?[1-9]\d{6,14}$/, "Please enter a valid international phone number with country code")
 }).refine(
   (data) => {
-    // If country is "other", manualCountry must be present/min 2 chars
     if (data.country === "other") return data.manualCountry && data.manualCountry.length > 1
     return true
   },
@@ -75,7 +73,38 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
 
   const country = form.watch("country");
 
-  // Final submit: adjust payload so that if 'other', 'country' = manualCountry
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const { latitude, longitude } = position.coords;
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+        const data = await response.json();
+        if (data.address) {
+          const { city, town, village, state, country, country_code, postcode } = data.address;
+          form.setValue("city", city || town || village || "");
+          form.setValue("state", state || "");
+          const found = countries.find(
+            c => c.label.toLowerCase() === (country || "").toLowerCase() ||
+              c.value === (country_code || "").toLowerCase()
+          );
+          form.setValue("country", found ? found.value : "other");
+          if (!found && country) {
+            form.setValue("manualCountry", country);
+          }
+          form.setValue("postalCode", postcode || "");
+        }
+      } catch (e) {
+        alert("Unable to fetch address from your location.");
+      }
+    }, () => {
+      alert("Unable to retrieve your location.");
+    });
+  };
+
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     const exported = {
       ...values,
@@ -93,6 +122,14 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
             International Delivery
           </h2>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          className="flex items-center gap-2 mb-2"
+          onClick={handleUseLocation}
+        >
+          <Locate className="w-4 h-4" /> Use My Location
+        </Button>
         <FormField
           control={form.control}
           name="recipientName"
@@ -114,7 +151,6 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
               <FormLabel>Country</FormLabel>
               <Select onValueChange={(v) => {
                 field.onChange(v);
-                // Reset manualCountry if not 'other'
                 if (v !== "other") form.setValue("manualCountry", "");
               }} defaultValue={field.value}>
                 <FormControl>
@@ -134,7 +170,6 @@ export function DeliveryDetailsForm({ onSubmit }: { onSubmit: (values: z.infer<t
             </FormItem>
           )}
         />
-        {/* Manually entered country name, only if 'other' selected */}
         {country === "other" && (
           <FormField
             control={form.control}
