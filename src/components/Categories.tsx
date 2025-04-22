@@ -1,5 +1,6 @@
+
 import { Link } from "react-router-dom";
-import { LucideSalad, Beef, UtensilsCrossed } from "lucide-react";
+import { LucideSalad, Beef, Fish } from "lucide-react";
 
 const Categories = () => {
   const categories = [
@@ -14,7 +15,7 @@ const Categories = () => {
     {
       id: 2,
       name: "Non-Vegetarian",
-      description: "Premium fish and meat-based pickles",
+      description: "Premium meat and seafood-based pickles including chicken, mutton, fish and prawns",
       image: "https://images.unsplash.com/photo-1574484284002-952d92456975",
       icon: <Beef className="w-6 h-6" />,
       link: "/shop?category=nonveg"
@@ -24,7 +25,7 @@ const Categories = () => {
       name: "Combo Packs",
       description: "Special combination packs of our best-selling pickles",
       image: "https://images.unsplash.com/photo-1567606855340-df87e6a35b5e",
-      icon: <UtensilsCrossed className="w-6 h-6" />,
+      icon: <Fish className="w-6 h-6" />,
       link: "/shop?category=combo"
     }
   ];

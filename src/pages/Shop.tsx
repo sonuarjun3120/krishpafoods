@@ -2,13 +2,25 @@
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
 import products from "@/data/products";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useLocation } from "react-router-dom";
 
 const Shop = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [spiceFilter, setSpiceFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const location = useLocation();
+  
+  // Parse URL parameter for category filtering
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const categoryParam = params.get("category");
+    if (categoryParam) {
+      setCategoryFilter(categoryParam);
+    }
+  }, [location]);
   
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -16,7 +28,9 @@ const Shop = () => {
     
     const matchesSpice = spiceFilter === "all" || product.spiceLevel.toLowerCase() === spiceFilter.toLowerCase();
     
-    return matchesSearch && matchesSpice;
+    const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
+    
+    return matchesSearch && matchesSpice && matchesCategory;
   });
 
   return (
@@ -38,6 +52,21 @@ const Shop = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
               />
+            </div>
+            
+            <div>
+              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="veg">Vegetarian</SelectItem>
+                  <SelectItem value="nonveg">Non-Vegetarian</SelectItem>
+                  <SelectItem value="combo">Combo Packs</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <div>

@@ -1,3 +1,4 @@
+
 export interface ProductPricing {
   weight: string;
   price: number;
@@ -15,6 +16,7 @@ export interface Product {
   servingSuggestions: string[];
   image: string;
   featured: boolean;
+  category: 'veg' | 'nonveg' | 'combo';
 }
 
 const products: Product[] = [
@@ -33,7 +35,8 @@ const products: Product[] = [
     shelfLife: "12 months",
     servingSuggestions: ["Mix with hot rice and ghee", "Serve with curd rice", "Pair with dosa or idli"],
     image: "https://images.unsplash.com/photo-1589216532372-1c2a367900d9",
-    featured: true
+    featured: true,
+    category: "veg"
   },
   {
     id: 2,
@@ -50,7 +53,8 @@ const products: Product[] = [
     shelfLife: "12 months",
     servingSuggestions: ["Mix with steamed rice", "Spread on dosa", "Serve with plain paratha"],
     image: "https://images.unsplash.com/photo-1589556223844-cbfb15a21f26",
-    featured: true
+    featured: true,
+    category: "veg"
   },
   {
     id: 3,
@@ -67,7 +71,8 @@ const products: Product[] = [
     shelfLife: "10 months",
     servingSuggestions: ["Pair with chapati or paratha", "Serve with curd rice", "Excellent with plain dosa"],
     image: "https://images.unsplash.com/photo-1582372685645-d53659ee6203",
-    featured: true
+    featured: true,
+    category: "veg"
   },
   {
     id: 4,
@@ -84,7 +89,8 @@ const products: Product[] = [
     shelfLife: "18 months",
     servingSuggestions: ["Perfect with biryani", "Great with rice and dal", "Enjoyable with plain yogurt"],
     image: "https://images.unsplash.com/photo-1621607152860-3f3bf6b1d2a9",
-    featured: true
+    featured: true,
+    category: "veg"
   },
   {
     id: 5,
@@ -101,7 +107,8 @@ const products: Product[] = [
     shelfLife: "12 months",
     servingSuggestions: ["Use sparingly with plain rice", "Mix with yogurt rice", "Add to sandwiches for heat"],
     image: "https://images.unsplash.com/photo-1583119022894-919a68a3d0e3",
-    featured: false
+    featured: false,
+    category: "veg"
   },
   {
     id: 6,
@@ -118,7 +125,133 @@ const products: Product[] = [
     shelfLife: "12 months",
     servingSuggestions: ["Great with plain rice", "Perfect with South Indian breakfast items", "Pair with rotis"],
     image: "https://images.unsplash.com/photo-1563649634806-624cd1e63fc9",
-    featured: false
+    featured: false,
+    category: "veg"
+  },
+  {
+    id: 7,
+    name: "Chicken Pickle",
+    pricing: [
+      { weight: "250g", price: 299 },
+      { weight: "500g", price: 549 },
+      { weight: "1kg", price: 999 }
+    ],
+    description: "Spicy chicken pickle made with tender pieces of chicken and a blend of aromatic spices.",
+    longDescription: "Our Chicken Pickle features succulent pieces of chicken marinated in a traditional blend of spices and slow-cooked to perfection. The chicken is sourced from local farms and prepared with care to ensure maximum flavor. This pickle adds a delightful protein-rich kick to any meal.",
+    ingredients: ["Chicken", "Red Chilies", "Garlic", "Ginger", "Mustard Seeds", "Sesame Oil", "Black Pepper", "Salt", "Turmeric"],
+    spiceLevel: "Hot",
+    shelfLife: "6 months",
+    servingSuggestions: ["Perfect with plain rice", "Great with parathas", "Enjoy with dosa"],
+    image: "https://images.unsplash.com/photo-1574484284002-952d92456975",
+    featured: true,
+    category: "nonveg"
+  },
+  {
+    id: 8,
+    name: "Boneless Chicken Pickle",
+    pricing: [
+      { weight: "250g", price: 349 },
+      { weight: "500g", price: 649 },
+      { weight: "1kg", price: 1199 }
+    ],
+    description: "Premium boneless chicken pickle with tender pieces in a rich, spicy gravy.",
+    longDescription: "Our Boneless Chicken Pickle is made with carefully selected boneless chicken pieces that are marinated in a special blend of spices and slow-cooked to achieve the perfect texture and flavor. The absence of bones makes it convenient to eat while enjoying the rich, spicy taste traditional to Telugu cuisine.",
+    ingredients: ["Boneless Chicken", "Red Chilies", "Ginger", "Garlic", "Mustard Seeds", "Fenugreek Seeds", "Sesame Oil", "Salt", "Turmeric"],
+    spiceLevel: "Hot",
+    shelfLife: "6 months",
+    servingSuggestions: ["Mix with steamed rice", "Great with rotis or parathas", "Perfect as a sandwich filling"],
+    image: "https://images.unsplash.com/photo-1580217729415-08d9fe8d5438",
+    featured: false,
+    category: "nonveg"
+  },
+  {
+    id: 9,
+    name: "Mutton Pickle",
+    pricing: [
+      { weight: "250g", price: 399 },
+      { weight: "500g", price: 749 },
+      { weight: "1kg", price: 1399 }
+    ],
+    description: "Rich and flavorful mutton pickle made with tender goat meat and authentic spices.",
+    longDescription: "Our Mutton Pickle is a premium offering featuring tender goat meat cooked with traditional spices. The meat is carefully selected and slow-cooked to ensure that it absorbs all the flavors while maintaining its tenderness. This pickle is a protein-rich delicacy that elevates the taste of simple meals.",
+    ingredients: ["Goat Meat", "Red Chilies", "Garlic", "Ginger", "Mustard Seeds", "Coriander Seeds", "Sesame Oil", "Salt", "Turmeric"],
+    spiceLevel: "Hot",
+    shelfLife: "6 months",
+    servingSuggestions: ["Perfect with plain rice and ghee", "Excellent with hot parathas", "Enjoy with dosa or idli"],
+    image: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143",
+    featured: true,
+    category: "nonveg"
+  },
+  {
+    id: 10,
+    name: "Boneless Mutton Pickle",
+    pricing: [
+      { weight: "250g", price: 449 },
+      { weight: "500g", price: 849 },
+      { weight: "1kg", price: 1599 }
+    ],
+    description: "Premium boneless mutton pickle with tender pieces marinated in special spices.",
+    longDescription: "Our Boneless Mutton Pickle features carefully selected boneless pieces of goat meat that are marinated in a special blend of spices and slow-cooked to perfection. The boneless preparation makes it easier to enjoy the rich, spicy flavors without having to navigate around bones.",
+    ingredients: ["Boneless Goat Meat", "Red Chilies", "Ginger", "Garlic", "Mustard Seeds", "Fennel Seeds", "Sesame Oil", "Salt", "Turmeric"],
+    spiceLevel: "Extra Hot",
+    shelfLife: "6 months",
+    servingSuggestions: ["Mix with hot steamed rice", "Perfect with rotis or naan", "Great as a side with biryani"],
+    image: "https://images.unsplash.com/photo-1664288036226-29fd284eb555",
+    featured: false,
+    category: "nonveg"
+  },
+  {
+    id: 11,
+    name: "Prawn Pickle",
+    pricing: [
+      { weight: "250g", price: 379 },
+      { weight: "500g", price: 699 },
+      { weight: "1kg", price: 1299 }
+    ],
+    description: "Coastal specialty prawn pickle with succulent prawns in a tangy, spicy marinade.",
+    longDescription: "Our Prawn Pickle is a coastal delicacy featuring fresh, succulent prawns carefully cleaned and cooked with a special blend of spices. The prawns are sourced from sustainable fisheries and prepared in small batches to ensure quality and flavor. This pickle brings the taste of the coast to your table.",
+    ingredients: ["Prawns", "Red Chilies", "Ginger", "Garlic", "Mustard Seeds", "Curry Leaves", "Sesame Oil", "Salt", "Turmeric"],
+    spiceLevel: "Medium",
+    shelfLife: "4 months",
+    servingSuggestions: ["Excellent with steamed rice", "Great with dosa or idli", "Perfect as a side with pulao"],
+    image: "https://images.unsplash.com/photo-1608500218890-c4914cf4d7c0",
+    featured: false,
+    category: "nonveg"
+  },
+  {
+    id: 12,
+    name: "Fish Pickle",
+    pricing: [
+      { weight: "250g", price: 349 },
+      { weight: "500g", price: 649 },
+      { weight: "1kg", price: 1199 }
+    ],
+    description: "Traditional fish pickle made with boneless fish pieces in a spicy, tangy gravy.",
+    longDescription: "Our Fish Pickle is made with boneless pieces of carefully selected fish that are marinated in a special blend of spices and preserved in oil. The fish is sourced from local waters and prepared using traditional methods to ensure authentic flavor. This pickle is a protein-rich addition to simple meals.",
+    ingredients: ["Boneless Fish", "Red Chilies", "Ginger", "Garlic", "Mustard Seeds", "Fenugreek Seeds", "Sesame Oil", "Salt", "Turmeric"],
+    spiceLevel: "Medium",
+    shelfLife: "4 months",
+    servingSuggestions: ["Perfect with plain rice", "Great with rotis or parathas", "Enjoy with dosa or idli"],
+    image: "https://images.unsplash.com/photo-1501435764075-903868ebb179",
+    featured: true,
+    category: "nonveg"
+  },
+  {
+    id: 13,
+    name: "Veg & Non-Veg Combo Pack",
+    pricing: [
+      { weight: "500g (4 x 125g)", price: 499 },
+      { weight: "1kg (4 x 250g)", price: 899 }
+    ],
+    description: "Special combo pack featuring our best-selling vegetarian and non-vegetarian pickles.",
+    longDescription: "Our Veg & Non-Veg Combo Pack brings together the best of both worlds. This carefully curated selection includes our popular Avakaya, Gongura, Chicken, and Fish pickles in convenient smaller jars. It's perfect for those who want to experience different flavors or as a thoughtful gift for pickle enthusiasts.",
+    ingredients: ["Various ingredients from included pickles"],
+    spiceLevel: "Medium",
+    shelfLife: "6 months",
+    servingSuggestions: ["Perfect for family meals", "Great for picnics and gatherings", "Ideal as a gift"],
+    image: "https://images.unsplash.com/photo-1567606855340-df87e6a35b5e",
+    featured: true,
+    category: "combo"
   }
 ];
 
