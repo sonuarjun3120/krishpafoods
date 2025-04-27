@@ -1,19 +1,20 @@
-
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
 import products from "@/data/products";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const Shop = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [spiceFilter, setSpiceFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const location = useLocation();
+  const navigate = useNavigate();
   
-  // Parse URL parameter for category filtering
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const categoryParam = params.get("category");
@@ -33,12 +34,26 @@ const Shop = () => {
     return matchesSearch && matchesSpice && matchesCategory;
   });
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <h1 className="font-playfair text-4xl font-bold text-primary mb-8 text-center">
-          Our Pickle Collection
-        </h1>
+        <div className="flex items-center mb-8">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="mr-4"
+            onClick={handleGoBack}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="font-playfair text-4xl font-bold text-primary flex-grow text-center">
+            Our Pickle Collection
+          </h1>
+        </div>
         
         <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
