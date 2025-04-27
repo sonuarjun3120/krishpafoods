@@ -1,11 +1,10 @@
-
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
-import { Facebook, Instagram, Twitter, Mail, MapPin, Phone } from "lucide-react";
+import { Facebook, Instagram, X, Mail, MapPin, Phone } from "lucide-react";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -90,14 +89,29 @@ const Contact = () => {
                 Follow Us
               </h2>
               <div className="flex space-x-4">
-                <a href="#" className="bg-primary text-white p-2 rounded-full hover:bg-primary/90 transition-colors">
+                <a 
+                  href="https://www.facebook.com/share/12Jf4ruQZYH/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-primary text-white p-2 rounded-full hover:bg-primary/90 transition-colors"
+                >
                   <Facebook size={20} />
                 </a>
-                <a href="#" className="bg-primary text-white p-2 rounded-full hover:bg-primary/90 transition-colors">
+                <a 
+                  href="https://www.instagram.com/krishpafoods/profilecard/?igsh=bm5pNmF5ZjBkZXJw" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-primary text-white p-2 rounded-full hover:bg-primary/90 transition-colors"
+                >
                   <Instagram size={20} />
                 </a>
-                <a href="#" className="bg-primary text-white p-2 rounded-full hover:bg-primary/90 transition-colors">
-                  <Twitter size={20} />
+                <a 
+                  href="https://x.com/krishpafoods?t=DJZgt1mLRZ1QE-P301sJKQ&s=08" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-primary text-white p-2 rounded-full hover:bg-primary/90 transition-colors"
+                >
+                  <X size={20} />
                 </a>
               </div>
               <div className="mt-6">
@@ -108,7 +122,7 @@ const Contact = () => {
                   className="flex items-center justify-center bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors"
                 >
                   <svg viewBox="0 0 32 32" className="h-5 w-5 mr-2" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16.004 0h-.008C7.174 0 0 7.176 0 16c0 3.916 1.416 7.5 3.776 10.28L1.304 32l5.892-2.44c2.636 1.92 5.876 3.044 9.372 3.044 8.824 0 15.996-7.176 15.996-16s-7.172-16-15.996-16zM25.252 22.508c-.388 1.096-1.924 2.008-3.148 2.272-.836.172-1.928.308-5.604-1.204-4.708-1.932-7.732-6.676-7.964-6.984-.224-.308-1.84-2.456-1.84-4.684 0-2.228 1.144-3.32 1.576-3.784.344-.368.756-.532 1.012-.532.252 0 .5.004.716.016.624.32.944.064 1.368 1.064.52 1.228 1.28 3.124 1.392 3.352.112.228.188.5.036.796-.14.288-.264.412-.48.652-.22.24-.42.424-.64.684-.196.228-.42.472-.172.9.252.424.112.776 1.676 3.388 1.68 2.156 3.052 2.848 3.496 3.164.444.32.708.268.972.16.26-.1.576-.404 1.092-.824.344-.288.78-.424 1.24-.272.464.14 2.92 1.376 3.42 1.628.5.248.836.38.956.584.12.212.12 1.208-.268 2.372zM16.004 0h-.008C7.174 0 0 7.176 0 16c0 3.916 1.416 7.5 3.776 10.28L1.304 32l5.892-2.44c2.636 1.92 5.876 3.044 9.372 3.044 8.824 0 15.996-7.176 15.996-16s-7.172-16-15.996-16zM25.252 22.508c-.388 1.096-1.924 2.008-3.148 2.272-.836.172-1.928.308-5.604-1.204-4.708-1.932-7.732-6.676-7.964-6.984-.224-.308-1.84-2.456-1.84-4.684 0-2.228 1.144-3.32 1.576-3.784.344-.368.756-.532 1.012-.532.252 0 .5.004.716.016.624.32.944.064 1.368 1.064.52 1.228 1.28 3.124 1.392 3.352.112.228.188.5.036.796-.14.288-.264.412-.48.652-.22.24-.42.424-.64.684-.196.228-.42.472-.172.9.252.424.112.776 1.676 3.388 1.68 2.156 3.052 2.848 3.496 3.164.444.32.708.268.972.16.26-.1.576-.404 1.092-.824.344-.288.78-.424 1.24-.272.464.14 2.92 1.376 3.42 1.628.5.248.836.38.956.584.12.212.12 1.208-.268 2.372z"/>
+                    <path d="M16.004 0h-.008C7.174 0 0 7.176 0 16c0 3.916 1.416 7.5 3.776 10.28L1.304 32l5.892-2.44c2.636 1.92 5.876 3.044 9.372 3.044 8.824 0 15.996-7.176 15.996-16s-7.172-16-15.996-16zM25.252 22.508c-.388 1.096-1.924 2.008-3.148 2.272-.836.172-1.928.308-5.604-1.204-4.708-1.932-7.732-6.676-7.964-6.984-.224-.308-1.84-2.456-1.84-4.684 0-2.228 1.144-3.32 1.576-3.784.344-.368.756-.532 1.012-.532.252 0 .5.004.716.016.624.32.944.064 1.368 1.064.52 1.228 1.28 3.124 1.392 3.352.112.228.188.5.036.796-.14.288-.264.412-.48.652-.22.24-.42.424-.64.684-.196.228-.42.472-.172.9.252.424.112.776 1.676 3.388 1.68 2.156 3.052 2.848 3.496 3.164.444.32.708.268.972.16.26-.1.576-.404 1.092-.824.344-.288.78-.424 1.24-.272.464.14 2.92 1.376 3.42 1.628.5.248.836.38.956.584.12.212.12 1.208-.268 2.372z"/>
                   </svg>
                   Chat on WhatsApp
                 </a>

@@ -1,6 +1,5 @@
-
 import { Link } from "react-router-dom";
-import { Facebook, Instagram, Twitter, Mail, Phone } from "lucide-react";
+import { Facebook, Instagram, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -15,14 +14,32 @@ const Footer = () => {
               Authentic Telugu-style pickles made with traditional recipes from Andhra and Telangana.
             </p>
             <div className="flex space-x-4">
-              <a href="#" aria-label="Facebook" className="text-white hover:text-amber-200">
+              <a 
+                href="https://www.facebook.com/share/12Jf4ruQZYH/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="Facebook" 
+                className="text-white hover:text-amber-200"
+              >
                 <Facebook size={20} />
               </a>
-              <a href="#" aria-label="Instagram" className="text-white hover:text-amber-200">
+              <a 
+                href="https://www.instagram.com/krishpafoods/profilecard/?igsh=bm5pNmF5ZjBkZXJw" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="Instagram" 
+                className="text-white hover:text-amber-200"
+              >
                 <Instagram size={20} />
               </a>
-              <a href="#" aria-label="Twitter" className="text-white hover:text-amber-200">
-                <Twitter size={20} />
+              <a 
+                href="https://x.com/krishpafoods?t=DJZgt1mLRZ1QE-P301sJKQ&s=08" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                aria-label="X (formerly Twitter)" 
+                className="text-white hover:text-amber-200"
+              >
+                <X size={20} />
               </a>
             </div>
           </div>
