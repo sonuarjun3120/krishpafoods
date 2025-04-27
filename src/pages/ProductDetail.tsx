@@ -1,10 +1,9 @@
-
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import { useParams, Link } from "react-router-dom";
 import products from "@/data/products";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import { useCart } from "@/context/CartContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -32,7 +31,6 @@ const ProductDetail = () => {
     );
   }
 
-  // Initialize selectedWeight if not set
   if (!selectedWeight && product.pricing.length > 0) {
     setSelectedWeight(product.pricing[0].weight);
   }
@@ -40,7 +38,6 @@ const ProductDetail = () => {
   const selectedPricing = product.pricing.find(p => p.weight === selectedWeight) || product.pricing[0];
 
   const handleAddToCart = () => {
-    // Add product with selected quantity and weight
     for (let i = 0; i < quantity; i++) {
       addToCart({
         id: product.id,
@@ -57,7 +54,6 @@ const ProductDetail = () => {
     });
   };
 
-  // Get related products (products not including current one)
   const relatedProducts = products
     .filter(p => p.id !== product.id)
     .slice(0, 4);
@@ -65,8 +61,27 @@ const ProductDetail = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
+        <div className="flex items-center gap-2 text-sm mb-6">
+          <Link to="/" className="text-primary hover:text-primary/80">
+            Home
+          </Link>
+          <span className="text-gray-400">/</span>
+          <Link to="/shop" className="text-primary hover:text-primary/80">
+            Shop
+          </Link>
+          <span className="text-gray-400">/</span>
+          <Link 
+            to={`/shop?category=${product?.category}`} 
+            className="text-primary hover:text-primary/80"
+          >
+            {product?.category === 'veg' ? 'Vegetarian' : 
+             product?.category === 'nonveg' ? 'Non-Vegetarian' : 'Combo Packs'}
+          </Link>
+          <span className="text-gray-400">/</span>
+          <span className="text-gray-600">{product?.name}</span>
+        </div>
+
         <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden">
-          {/* Product Image */}
           <div className="md:w-1/2">
             <img 
               src={product.image} 
@@ -75,7 +90,6 @@ const ProductDetail = () => {
             />
           </div>
           
-          {/* Product Details */}
           <div className="md:w-1/2 p-6 md:p-8">
             <h1 className="font-playfair text-3xl font-bold text-primary mb-2">
               {product.name}
@@ -92,7 +106,6 @@ const ProductDetail = () => {
               <span className="text-gray-600 text-sm">(32 reviews)</span>
             </div>
             
-            {/* Weight/Price Selection */}
             <div className="mb-4">
               <Select value={selectedWeight} onValueChange={setSelectedWeight}>
                 <SelectTrigger className="w-full mb-2">
@@ -198,7 +211,6 @@ const ProductDetail = () => {
           </div>
         </div>
         
-        {/* Related Products */}
         <div className="mt-16">
           <h2 className="font-playfair text-2xl font-bold text-primary mb-6">You May Also Like</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
