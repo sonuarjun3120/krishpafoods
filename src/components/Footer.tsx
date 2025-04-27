@@ -1,5 +1,6 @@
+
 import { Link } from "react-router-dom";
-import { Facebook, Instagram, X } from "lucide-react";
+import { Facebook, Instagram, X, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
