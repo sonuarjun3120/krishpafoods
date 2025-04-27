@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, X, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,7 +50,6 @@ const Footer = () => {
               <li><Link to="/shop" className="text-sm hover:text-amber-200">Shop</Link></li>
               <li><Link to="/about" className="text-sm hover:text-amber-200">About Us</Link></li>
               <li><Link to="/contact" className="text-sm hover:text-amber-200">Contact</Link></li>
-              <li><Link to="/blog" className="text-sm hover:text-amber-200">Blog</Link></li>
               <li><Link to="/faq" className="text-sm hover:text-amber-200">FAQs</Link></li>
             </ul>
           </div>
@@ -61,11 +59,11 @@ const Footer = () => {
             <ul className="space-y-2">
               <li className="flex items-center text-sm">
                 <Phone size={16} className="mr-2" />
-                +91 9876543210
+                +91 9347445411
               </li>
               <li className="flex items-center text-sm">
                 <Mail size={16} className="mr-2" />
-                info@krishpapickles.com
+                krishpafoods@gmail.com
               </li>
             </ul>
           </div>

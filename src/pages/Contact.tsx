@@ -57,7 +57,7 @@ const Contact = () => {
                   <Phone className="h-5 w-5 text-primary mr-3 mt-0.5" />
                   <div>
                     <h3 className="font-medium">Phone</h3>
-                    <p className="text-gray-600">+91 9876543210</p>
+                    <p className="text-gray-600">+91 9347445411</p>
                     <p className="text-gray-600">Mon-Sat: 9am to 6pm</p>
                   </div>
                 </div>
@@ -66,8 +66,7 @@ const Contact = () => {
                   <Mail className="h-5 w-5 text-primary mr-3 mt-0.5" />
                   <div>
                     <h3 className="font-medium">Email</h3>
-                    <p className="text-gray-600">info@krishpapickles.com</p>
-                    <p className="text-gray-600">support@krishpapickles.com</p>
+                    <p className="text-gray-600">krishpafoods@gmail.com</p>
                   </div>
                 </div>
                 
