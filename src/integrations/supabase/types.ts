@@ -9,7 +9,83 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          order_id: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          order_id: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          order_id?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          items: Json
+          shipping_address: Json
+          status: string
+          total_amount: number
+          updated_at: string
+          user_email: string | null
+          user_name: string
+          user_phone: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          items: Json
+          shipping_address: Json
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_email?: string | null
+          user_name: string
+          user_phone: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          items?: Json
+          shipping_address?: Json
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_email?: string | null
+          user_name?: string
+          user_phone?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
