@@ -22,11 +22,6 @@ const UpiQrCode = ({ amount, upiId, merchantName = "Krishpa Homemade Pickles" }:
           qrRef.current.innerHTML = "";
           
           // Format the UPI URL with transaction details
-          // pa: payee address (UPI ID)
-          // pn: payee name
-          // am: amount
-          // cu: currency (INR)
-          // tn: transaction note
           const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(`Payment for Krishpa Pickles order`)}`;
           
           // Generate QR code on canvas
