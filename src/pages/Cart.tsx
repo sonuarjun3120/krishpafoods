@@ -1,16 +1,21 @@
+
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Trash2 } from "lucide-react";
+import { Trash2, QrCode, CreditCard } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { DeliveryDetailsForm } from "@/components/DeliveryDetailsForm";
 import { toast } from "@/hooks/use-toast";
-import React from "react";
+import React, { useState } from "react";
 import { DomesticDeliveryForm } from "@/components/DomesticDeliveryForm";
+import UpiQrCode from "@/components/UpiQrCode";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
   const [deliveryType, setDeliveryType] = React.useState<"domestic" | "international">("domestic");
+  const [showQrCode, setShowQrCode] = useState(false);
+  const [deliveryDetails, setDeliveryDetails] = useState<any>(null);
 
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -27,23 +32,45 @@ const Cart = () => {
   };
 
   const handleDomesticDeliverySubmit = (values: any) => {
+    setDeliveryDetails(values);
     toast({
       title: "Delivery Details Saved",
       description: "Your domestic delivery information has been saved successfully.",
       variant: "default"
     });
     console.log("Domestic delivery details:", values);
-    // Optionally store these details for later
   };
 
   const handleInternationalDeliverySubmit = (values: any) => {
+    setDeliveryDetails(values);
     toast({
       title: "Delivery Details Saved",
       description: "Your delivery information has been saved successfully.",
       variant: "default"
     });
     console.log("International delivery details:", values);
-    // Optionally store these details for later
+  };
+
+  const handlePayWithUpi = () => {
+    if (!deliveryDetails) {
+      toast({
+        title: "Delivery Details Required",
+        description: "Please fill in your delivery information first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setShowQrCode(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    toast({
+      title: "Payment Successful",
+      description: "We've received your payment and sent a confirmation to you and the seller.",
+      variant: "default"
+    });
+    clearCart();
+    setShowQrCode(false);
   };
 
   return (
@@ -56,6 +83,7 @@ const Cart = () => {
         {cartItems.length > 0 ? (
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="lg:w-2/3">
+              {/* Cart items table */}
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
@@ -191,9 +219,18 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <Button className="w-full bg-primary hover:bg-primary/90 mb-3">
-                  Proceed to Checkout
-                </Button>
+                <div className="space-y-3">
+                  <Button 
+                    className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
+                    onClick={handlePayWithUpi}
+                  >
+                    <QrCode size={18} /> Pay with UPI QR
+                  </Button>
+                  
+                  <Button className="w-full flex items-center justify-center gap-2" variant="outline">
+                    <CreditCard size={18} /> Other Payment Methods
+                  </Button>
+                </div>
 
                 <div className="mt-6">
                   <h3 className="font-medium text-gray-800 mb-2">We Accept</h3>
@@ -219,6 +256,30 @@ const Cart = () => {
           </div>
         )}
       </div>
+
+      {/* QR Code Dialog */}
+      <Dialog open={showQrCode} onOpenChange={setShowQrCode}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Scan & Pay</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <UpiQrCode 
+              amount={calculateTotal()} 
+              upiId="9963763160@ptsbi" 
+            />
+            <div className="mt-6 text-center text-sm text-gray-500">
+              <p>After payment, you'll receive a confirmation.</p>
+              <p>Notifications will be sent to our team.</p>
+            </div>
+            <div className="mt-6 flex justify-center">
+              <Button onClick={handlePaymentSuccess} className="bg-green-600 hover:bg-green-700">
+                I've Completed the Payment
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,7 +11,6 @@ import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 import International from "./pages/International";
 import Cart from "./pages/Cart";
-import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "./context/CartContext";
