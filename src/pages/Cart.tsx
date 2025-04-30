@@ -1,4 +1,3 @@
-
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -13,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import OrderHistory from "@/components/OrderHistory";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -20,7 +20,9 @@ const Cart = () => {
   const [showQrCode, setShowQrCode] = useState(false);
   const [deliveryDetails, setDeliveryDetails] = useState<any>(null);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("cart");
+  const [paymentTimeout, setPaymentTimeout] = useState<number | null>(null);
 
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -66,10 +68,23 @@ const Cart = () => {
       return;
     }
     setShowQrCode(true);
+    
+    // Set a timer to automatically detect "payment" after 10 seconds for demonstration
+    const timeout = window.setTimeout(() => {
+      handlePaymentSuccess();
+    }, 10000);
+    
+    setPaymentTimeout(timeout);
   };
 
   const handlePaymentSuccess = async () => {
     try {
+      // Clear the timeout if it exists
+      if (paymentTimeout) {
+        clearTimeout(paymentTimeout);
+        setPaymentTimeout(null);
+      }
+      
       setPaymentProcessing(true);
       
       const orderData = {
@@ -96,6 +111,8 @@ const Cart = () => {
         throw new Error(response.error.message);
       }
 
+      setPaymentSuccess(true);
+      
       toast({
         title: "Payment Successful",
         description: "We've received your payment and sent a confirmation to your WhatsApp. The order details have been sent to our team.",
@@ -103,7 +120,13 @@ const Cart = () => {
       });
       
       clearCart();
-      setShowQrCode(false);
+      
+      // Keep the dialog open to show success message, but will close after 5 seconds
+      setTimeout(() => {
+        setShowQrCode(false);
+        setPaymentSuccess(false);
+      }, 5000);
+      
     } catch (error) {
       console.error("Error processing payment:", error);
       toast({
@@ -322,36 +345,74 @@ const Cart = () => {
       </div>
 
       {/* QR Code Dialog */}
-      <Dialog open={showQrCode} onOpenChange={setShowQrCode}>
+      <Dialog open={showQrCode} onOpenChange={(open) => {
+        if (!open && paymentTimeout) {
+          clearTimeout(paymentTimeout);
+          setPaymentTimeout(null);
+        }
+        if (!paymentProcessing && !paymentSuccess) {
+          setShowQrCode(open);
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center">Scan & Pay</DialogTitle>
+            <DialogTitle className="text-center">
+              {paymentSuccess ? "Payment Complete" : "Scan & Pay"}
+            </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <UpiQrCode 
-              amount={calculateTotal()} 
-              upiId="9963763160@ptsbi" 
-            />
-            <div className="mt-6 text-center text-sm text-gray-500">
-              <p>After payment, you'll receive a confirmation on WhatsApp.</p>
-              <p>Notifications will be sent to our team.</p>
-            </div>
-            <div className="mt-6 flex justify-center">
-              <Button 
-                onClick={handlePaymentSuccess} 
-                className="bg-green-600 hover:bg-green-700"
-                disabled={paymentProcessing}
-              >
-                {paymentProcessing ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-r-2 border-white mr-2"></div>
-                    Processing...
-                  </>
-                ) : (
-                  "I've Completed the Payment"
-                )}
-              </Button>
-            </div>
+            {paymentSuccess ? (
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <div className="rounded-full bg-green-100 p-3">
+                    <CheckCircle className="h-12 w-12 text-green-600" />
+                  </div>
+                </div>
+                <Alert variant="default" className="bg-green-50 border-green-200">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertTitle>Payment Successful!</AlertTitle>
+                  <AlertDescription>
+                    Your order has been confirmed. A confirmation has been sent to your WhatsApp number.
+                  </AlertDescription>
+                </Alert>
+                <p className="text-sm text-gray-600">
+                  Thank you for shopping with Krishpa Homemade Pickles!
+                </p>
+              </div>
+            ) : (
+              <>
+                <UpiQrCode 
+                  amount={calculateTotal()} 
+                  upiId="9963763160@ptsbi" 
+                />
+                <div className="mt-6 text-center text-sm text-gray-500">
+                  {paymentProcessing ? (
+                    <p>Processing your payment...</p>
+                  ) : (
+                    <>
+                      <p>After payment, you'll receive a confirmation on WhatsApp.</p>
+                      <p className="text-xs text-gray-400 mt-1">(Payment will be auto-detected in a few seconds for demo purposes)</p>
+                    </>
+                  )}
+                </div>
+                <div className="mt-6 flex justify-center">
+                  <Button 
+                    onClick={handlePaymentSuccess} 
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={paymentProcessing}
+                  >
+                    {paymentProcessing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-r-2 border-white mr-2"></div>
+                        Processing...
+                      </>
+                    ) : (
+                      "I've Completed the Payment"
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

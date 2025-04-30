@@ -1,226 +1,141 @@
 
 import React, { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Package } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Order {
-  id: string;
-  user_name: string;
-  total_amount: number;
-  status: string;
-  created_at: string;
-  items: any[];
-  shipping_address: {
-    city: string;
-    state: string;
-    pincode: string;
-    [key: string]: any;
-  };
-}
+import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, CheckCircle, Package, Search, Truck } from "lucide-react";
 
 const OrderHistory = () => {
-  const [phone, setPhone] = useState("");
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
+  const [searchClicked, setSearchClicked] = useState(false);
 
-  const handleSearchOrders = async () => {
-    if (!phone || phone.length < 10) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid phone number",
-        variant: "destructive"
+  const {
+    data: orders,
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ['orders', phoneNumber],
+    queryFn: async () => {
+      if (!phoneNumber) return [];
+      
+      const response = await supabase.functions.invoke('get-orders', {
+        body: { phone: phoneNumber }
       });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await supabase.functions.invoke("get-orders", {
-        body: { phone }
-      });
-
+      
       if (response.error) {
         throw new Error(response.error.message);
       }
-
-      setOrders(response.data.orders || []);
       
-      if (response.data.orders.length === 0) {
-        toast({
-          title: "No Orders Found",
-          description: "No orders found with the provided phone number",
-          variant: "default"
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch orders. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+      return response.data?.orders || [];
+    },
+    enabled: searchClicked && !!phoneNumber
+  });
+
+  const handleSearch = () => {
+    if (phoneNumber) {
+      setSearchClicked(true);
+      refetch();
     }
   };
 
-  const showOrderDetails = (order: Order) => {
-    setSelectedOrder(order);
-    setShowDetails(true);
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return <CheckCircle className="text-green-500" size={18} />;
+      case 'shipped':
+        return <Truck className="text-blue-500" size={18} />;
+      case 'delivered':
+        return <Package className="text-primary" size={18} />;
+      default:
+        return <AlertCircle className="text-amber-500" size={18} />;
+    }
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
       month: 'short',
-      year: 'numeric'
+      day: 'numeric'
     });
   };
 
   return (
-    <div className="w-full">
-      <div className="mb-6">
-        <h2 className="text-xl font-medium mb-2">Check Your Order History</h2>
-        <p className="text-gray-500 text-sm mb-4">
-          Enter your phone number to see your previous orders
-        </p>
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm p-4">
+        <h2 className="text-lg font-medium mb-4">Find Your Orders</h2>
         <div className="flex gap-2">
-          <Input
-            placeholder="Enter your phone number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="max-w-xs"
+          <Input 
+            placeholder="Enter your phone number" 
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="flex-1"
           />
           <Button 
-            onClick={handleSearchOrders} 
-            disabled={loading}
+            onClick={handleSearch}
             className="flex items-center gap-2"
           >
-            {loading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-r-2 border-white"></div>
-            ) : (
-              <Search size={18} />
-            )}
-            Search
+            <Search size={16} /> Search
           </Button>
         </div>
       </div>
 
-      {orders.length > 0 && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg">Your Orders ({orders.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.id.substring(0, 8)}</TableCell>
-                    <TableCell>{formatDate(order.created_at)}</TableCell>
-                    <TableCell>₹{order.total_amount.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        order.status === "confirmed" 
-                          ? "bg-green-100 text-green-800" 
-                          : order.status === "shipped" 
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => showOrderDetails(order)}
-                        className="flex items-center gap-1"
-                      >
-                        <Package size={14} />
-                        Details
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+      {searchClicked && (
+        <div>
+          {isLoading && (
+            <div className="text-center py-8">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+              <p className="mt-2 text-sm text-gray-500">Loading your orders...</p>
+            </div>
+          )}
 
-      {selectedOrder && (
-        <Dialog open={showDetails} onOpenChange={setShowDetails}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Order Details #{selectedOrder.id.substring(0, 8)}</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium">Order Information</h3>
-                <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                  <div>Date:</div>
-                  <div>{formatDate(selectedOrder.created_at)}</div>
-                  <div>Status:</div>
-                  <div>{selectedOrder.status}</div>
-                  <div>Total Amount:</div>
-                  <div>₹{selectedOrder.total_amount.toFixed(2)}</div>
-                </div>
-              </div>
+          {error && (
+            <div className="bg-red-50 border border-red-100 rounded-lg p-4 text-center text-red-800">
+              <p>Error loading orders. Please try again.</p>
+            </div>
+          )}
 
-              <div>
-                <h3 className="font-medium">Shipping Address</h3>
-                <div className="mt-2 text-sm">
-                  {selectedOrder.shipping_address.streetAddress && <p>{selectedOrder.shipping_address.streetAddress}</p>}
-                  <p>
-                    {selectedOrder.shipping_address.city}, {selectedOrder.shipping_address.state} {selectedOrder.shipping_address.pincode}
-                  </p>
-                </div>
-              </div>
+          {!isLoading && !error && orders && orders.length === 0 && phoneNumber && (
+            <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 text-center">
+              <p className="text-amber-800">No orders found for this phone number.</p>
+            </div>
+          )}
 
-              <div>
-                <h3 className="font-medium">Items</h3>
-                <div className="mt-2">
-                  {selectedOrder.items.map((item, index) => (
-                    <div key={index} className="flex justify-between py-2 border-b text-sm">
-                      <span>{item.name} ({item.weight}) x {item.quantity}</span>
-                      <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+          {!isLoading && !error && orders && orders.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <h3 className="p-4 border-b bg-gray-50 font-medium">Your Order History</h3>
+              <div className="divide-y">
+                {orders.map((order: any) => (
+                  <div key={order.id} className="p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium text-gray-900">Order #{order.id.substring(0, 8)}</p>
+                        <p className="text-sm text-gray-500">{formatDate(order.created_at)}</p>
+                      </div>
+                      <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-sm">
+                        {getStatusIcon(order.status)}
+                        <span className="capitalize">{order.status}</span>
+                      </div>
                     </div>
-                  ))}
-                </div>
+                    
+                    <div className="mt-2">
+                      <p className="text-sm"><span className="font-medium">Items:</span> {order.items.length}</p>
+                      <p className="text-sm"><span className="font-medium">Total:</span> ₹{order.total_amount.toFixed(2)}</p>
+                    </div>
+                    
+                    <div className="mt-3 pt-2 border-t border-dashed">
+                      <p className="text-xs text-gray-500">
+                        Shipping to: {order.shipping_address.streetAddress || order.shipping_address.address}, 
+                        {order.shipping_address.city}, {order.shipping_address.state}, {order.shipping_address.pincode || order.shipping_address.zipCode}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            
-            <div className="flex justify-end mt-4">
-              <Button variant="outline" onClick={() => setShowDetails(false)}>Close</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+          )}
+        </div>
       )}
     </div>
   );
