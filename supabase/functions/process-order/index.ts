@@ -34,6 +34,7 @@ serve(async (req) => {
         user_name: orderData.user_name,
         total_amount: orderData.total_amount,
         shipping_address: orderData.shipping_address,
+        payment_method: orderData.payment_method || "upi",
         items: orderData.items,
         status: "confirmed"
       })
@@ -68,6 +69,7 @@ serve(async (req) => {
       Customer: ${orderData.user_name}
       Phone: ${orderData.user_phone}
       Amount: ₹${orderData.total_amount}
+      Payment Method: ${orderData.payment_method || "upi"}
       
       Shipping to:
       ${formattedAddress}
@@ -96,6 +98,7 @@ serve(async (req) => {
       Phone: ${orderData.user_phone}
       Email: ${orderData.user_email || 'Not provided'}
       Amount: ₹${orderData.total_amount}
+      Payment Method: ${orderData.payment_method || "upi"}
       
       Shipping Address:
       ${JSON.stringify(orderData.shipping_address, null, 2)}

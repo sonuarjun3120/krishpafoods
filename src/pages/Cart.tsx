@@ -1,7 +1,7 @@
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Trash2, QrCode, CreditCard, Search, Package, CheckCircle } from "lucide-react";
+import { Trash2, QrCode, CreditCard, Search, Package, CheckCircle, PhoneCall, Cash } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { DeliveryDetailsForm } from "@/components/DeliveryDetailsForm";
 import { toast } from "@/hooks/use-toast";
@@ -23,6 +23,8 @@ const Cart = () => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("cart");
   const [paymentTimeout, setPaymentTimeout] = useState<number | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"upi" | "cod" | "bank" | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -58,16 +60,34 @@ const Cart = () => {
     console.log("International delivery details:", values);
   };
 
-  const handlePayWithUpi = () => {
+  const validateDeliveryDetails = () => {
     if (!deliveryDetails) {
       toast({
         title: "Delivery Details Required",
         description: "Please fill in your delivery information first.",
         variant: "destructive"
       });
-      return;
+      return false;
     }
+    
+    if (!deliveryDetails.mobileNumber) {
+      toast({
+        title: "Mobile Number Required",
+        description: "Please provide a valid mobile number for order updates.",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handlePayWithUpi = () => {
+    if (!validateDeliveryDetails()) return;
+    
+    setSelectedPaymentMethod("upi");
     setShowQrCode(true);
+    setPaymentError(null);
     
     // Set a timer to automatically detect "payment" after 10 seconds for demonstration
     const timeout = window.setTimeout(() => {
@@ -76,16 +96,34 @@ const Cart = () => {
     
     setPaymentTimeout(timeout);
   };
+  
+  const handleCashOnDelivery = () => {
+    if (!validateDeliveryDetails()) return;
+    
+    setSelectedPaymentMethod("cod");
+    // Process COD order immediately
+    processOrder("cod");
+  };
+  
+  const handleBankTransfer = () => {
+    if (!validateDeliveryDetails()) return;
+    
+    setSelectedPaymentMethod("bank");
+    setShowQrCode(true);
+    setPaymentError(null);
+    
+    // Set a timer for demonstration
+    const timeout = window.setTimeout(() => {
+      handlePaymentSuccess();
+    }, 10000);
+    
+    setPaymentTimeout(timeout);
+  };
 
-  const handlePaymentSuccess = async () => {
+  const processOrder = async (paymentMethod: string) => {
     try {
-      // Clear the timeout if it exists
-      if (paymentTimeout) {
-        clearTimeout(paymentTimeout);
-        setPaymentTimeout(null);
-      }
-      
       setPaymentProcessing(true);
+      setPaymentError(null);
       
       const orderData = {
         user_name: deliveryDetails.name || deliveryDetails.recipientName,
@@ -93,6 +131,7 @@ const Cart = () => {
         user_email: deliveryDetails.email || "",
         total_amount: calculateTotal(),
         shipping_address: deliveryDetails,
+        payment_method: paymentMethod,
         items: cartItems.map(item => ({
           id: item.id,
           name: item.name,
@@ -108,36 +147,160 @@ const Cart = () => {
       });
 
       if (response.error) {
-        throw new Error(response.error.message);
+        throw new Error(response.error.message || "Failed to process payment");
       }
 
       setPaymentSuccess(true);
       
       toast({
-        title: "Payment Successful",
-        description: "We've received your payment and sent a confirmation to your WhatsApp. Order details have been sent to our team and you'll receive updates shortly.",
+        title: "Order Confirmed",
+        description: "Your order has been confirmed! We've sent order details to your WhatsApp number. You'll receive updates about your order soon.",
         variant: "default"
       });
       
       clearCart();
       
-      // Keep the dialog open to show success message, but will close after 5 seconds
-      setTimeout(() => {
-        setShowQrCode(false);
-        setPaymentSuccess(false);
-        setActiveTab("orders"); // Automatically switch to orders tab
-      }, 5000);
+      // Only for UPI and Bank Transfer, we're showing the dialog
+      if (selectedPaymentMethod === "upi" || selectedPaymentMethod === "bank") {
+        // Keep the dialog open to show success message, but will close after 5 seconds
+        setTimeout(() => {
+          setShowQrCode(false);
+          setPaymentSuccess(false);
+          setSelectedPaymentMethod(null);
+          setActiveTab("orders"); // Automatically switch to orders tab
+        }, 5000);
+      } else {
+        // For COD, redirect to orders tab immediately
+        setActiveTab("orders");
+      }
       
     } catch (error) {
-      console.error("Error processing payment:", error);
+      console.error("Error processing order:", error);
+      setPaymentError(error.message || "There was a problem processing your order. Please try again.");
+      setPaymentSuccess(false);
+      
       toast({
-        title: "Error Processing Payment",
-        description: "There was a problem processing your payment. Please try again.",
+        title: "Order Processing Error",
+        description: "There was a problem processing your order. Please try again.",
         variant: "destructive"
       });
     } finally {
       setPaymentProcessing(false);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    // Clear the timeout if it exists
+    if (paymentTimeout) {
+      clearTimeout(paymentTimeout);
+      setPaymentTimeout(null);
+    }
+    
+    // Process the order based on selected payment method
+    processOrder(selectedPaymentMethod || "upi");
+  };
+
+  // Generate dialog title based on payment method
+  const getPaymentDialogTitle = () => {
+    if (paymentSuccess) return "Payment Complete";
+    
+    if (selectedPaymentMethod === "upi") return "Scan & Pay with UPI";
+    if (selectedPaymentMethod === "bank") return "Bank Transfer Details";
+    
+    return "Payment";
+  };
+  
+  // Generate payment dialog content based on payment method
+  const renderPaymentDialogContent = () => {
+    if (paymentSuccess) {
+      return (
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="rounded-full bg-green-100 p-3">
+              <CheckCircle className="h-12 w-12 text-green-600" />
+            </div>
+          </div>
+          <Alert variant="default" className="bg-green-50 border-green-200">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertTitle>Payment Successful!</AlertTitle>
+            <AlertDescription>
+              Your order has been confirmed. A confirmation has been sent to your WhatsApp number.
+            </AlertDescription>
+          </Alert>
+          <p className="text-sm text-gray-600">
+            Thank you for shopping with Krishpa Homemade Pickles!
+          </p>
+        </div>
+      );
+    }
+    
+    if (paymentProcessing) {
+      return (
+        <div className="text-center py-6">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+          <p className="mt-4 text-gray-600">Processing your payment...</p>
+        </div>
+      );
+    }
+    
+    if (paymentError) {
+      return (
+        <div className="text-center py-4">
+          <Alert variant="destructive">
+            <AlertTitle>Payment Failed</AlertTitle>
+            <AlertDescription>
+              {paymentError}
+            </AlertDescription>
+          </Alert>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => setShowQrCode(false)}
+          >
+            Try Again
+          </Button>
+        </div>
+      );
+    }
+    
+    if (selectedPaymentMethod === "upi") {
+      return (
+        <>
+          <UpiQrCode 
+            amount={calculateTotal()} 
+            upiId="9963763160@ptsbi" 
+          />
+          <div className="mt-6 text-center text-sm text-gray-500">
+            <p>After payment, you'll receive a confirmation on WhatsApp.</p>
+            <p className="text-xs text-gray-400 mt-1">(Payment will be auto-detected in a few seconds for demo purposes)</p>
+          </div>
+        </>
+      );
+    }
+    
+    if (selectedPaymentMethod === "bank") {
+      return (
+        <div className="text-center space-y-4">
+          <div className="bg-white p-4 rounded-md shadow-sm border">
+            <h3 className="font-medium text-lg mb-3">Bank Transfer Details</h3>
+            <div className="text-left space-y-2">
+              <p><span className="font-medium">Account Name:</span> Krishpa Homemade Pickles</p>
+              <p><span className="font-medium">Account Number:</span> 123456789012</p>
+              <p><span className="font-medium">IFSC Code:</span> SBIN0001234</p>
+              <p><span className="font-medium">Bank Name:</span> State Bank of India</p>
+              <p><span className="font-medium">Amount:</span> ₹{calculateTotal().toFixed(2)}</p>
+            </div>
+          </div>
+          <div className="text-center text-sm text-gray-500">
+            <p>Please use your name as reference in the transaction.</p>
+            <p>After payment, you'll receive a confirmation on WhatsApp.</p>
+            <p className="text-xs text-gray-400 mt-1">(Payment will be auto-detected in a few seconds for demo purposes)</p>
+          </div>
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   return (
@@ -303,8 +466,21 @@ const Cart = () => {
                         <QrCode size={18} /> Pay with UPI QR
                       </Button>
                       
-                      <Button className="w-full flex items-center justify-center gap-2" variant="outline">
-                        <CreditCard size={18} /> Other Payment Methods
+                      <Button 
+                        className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                        onClick={handleCashOnDelivery}
+                        disabled={cartItems.length === 0}
+                      >
+                        <Cash size={18} /> Cash on Delivery
+                      </Button>
+                      
+                      <Button 
+                        className="w-full flex items-center justify-center gap-2" 
+                        variant="outline"
+                        onClick={handleBankTransfer}
+                        disabled={cartItems.length === 0}
+                      >
+                        <CreditCard size={18} /> Bank Transfer
                       </Button>
                     </div>
 
@@ -322,6 +498,7 @@ const Cart = () => {
                           <svg height="20" viewBox="0 0 780 500" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M40 0H740C762.091 0 780 17.9086 780 40V460C780 482.091 762.091 500 740 500H40C17.9086 500 0 482.091 0 460V40C0 17.9086 17.9086 0 40 0Z" fill="#EFF3F5"></path><path fillRule="evenodd" clipRule="evenodd" d="M472.56 188.376C472.56 179.714 464.844 172.736 455.333 172.736C445.823 172.736 438.107 179.714 438.107 188.376C438.107 197.05 445.823 204.028 455.333 204.028C464.844 204.028 472.56 197.05 472.56 188.376ZM455.333 180.928C460.254 180.928 464.277 184.238 464.254 188.376C464.277 192.526 460.254 195.848 455.333 195.848C450.412 195.848 446.389 192.526 446.389 188.376C446.389 184.238 450.412 180.928 455.333 180.928Z" fill="#253B80"></path><path fillRule="evenodd" clipRule="evenodd" d="M438.107 172.736H459.356V179.714" fill="#253B80"></path></svg>
                         </div>
                       </div>
+                      <p className="mt-3 text-xs text-gray-500">After payment is complete, check your order status in the Order History tab.</p>
                     </div>
                   </div>
                 </div>
@@ -354,7 +531,7 @@ const Cart = () => {
         </Tabs>
       </div>
 
-      {/* QR Code Dialog */}
+      {/* Payment Dialog */}
       <Dialog open={showQrCode} onOpenChange={(open) => {
         if (!open && paymentTimeout) {
           clearTimeout(paymentTimeout);
@@ -367,46 +544,11 @@ const Cart = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-center">
-              {paymentSuccess ? "Payment Complete" : "Scan & Pay"}
+              {getPaymentDialogTitle()}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            {paymentSuccess ? (
-              <div className="text-center space-y-4">
-                <div className="flex justify-center">
-                  <div className="rounded-full bg-green-100 p-3">
-                    <CheckCircle className="h-12 w-12 text-green-600" />
-                  </div>
-                </div>
-                <Alert variant="default" className="bg-green-50 border-green-200">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertTitle>Payment Successful!</AlertTitle>
-                  <AlertDescription>
-                    Your order has been confirmed. A confirmation has been sent to your WhatsApp number.
-                  </AlertDescription>
-                </Alert>
-                <p className="text-sm text-gray-600">
-                  Thank you for shopping with Krishpa Homemade Pickles!
-                </p>
-              </div>
-            ) : (
-              <>
-                <UpiQrCode 
-                  amount={calculateTotal()} 
-                  upiId="9963763160@ptsbi" 
-                />
-                <div className="mt-6 text-center text-sm text-gray-500">
-                  {paymentProcessing ? (
-                    <p>Processing your payment...</p>
-                  ) : (
-                    <>
-                      <p>After payment, you'll receive a confirmation on WhatsApp.</p>
-                      <p className="text-xs text-gray-400 mt-1">(Payment will be auto-detected in a few seconds for demo purposes)</p>
-                    </>
-                  )}
-                </div>
-              </>
-            )}
+            {renderPaymentDialogContent()}
           </div>
         </DialogContent>
       </Dialog>
