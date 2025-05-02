@@ -1,4 +1,3 @@
-
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -126,6 +125,7 @@ const Cart = () => {
       setTimeout(() => {
         setShowQrCode(false);
         setPaymentSuccess(false);
+        setActiveTab("orders"); // Automatically switch to orders tab
       }, 5000);
       
     } catch (error) {
@@ -155,6 +155,7 @@ const Cart = () => {
           
           <TabsContent value="cart">
             {cartItems.length > 0 ? (
+              
               <div className="flex flex-col lg:flex-row gap-8">
                 <div className="lg:w-2/3">
                   {/* Cart items table */}
@@ -339,6 +340,14 @@ const Cart = () => {
           
           <TabsContent value="orders">
             <div className="bg-white rounded-lg shadow-sm p-6">
+              <Alert className="mb-4 bg-amber-50 border-amber-200">
+                <AlertTitle className="flex items-center gap-2">
+                  <Package className="h-4 w-4" /> Check Your Order Status
+                </AlertTitle>
+                <AlertDescription>
+                  After payment completion, you can track your orders here. Your new order will appear in the order history once payment is processed.
+                </AlertDescription>
+              </Alert>
               <OrderHistory />
             </div>
           </TabsContent>
@@ -395,22 +404,6 @@ const Cart = () => {
                       <p className="text-xs text-gray-400 mt-1">(Payment will be auto-detected in a few seconds for demo purposes)</p>
                     </>
                   )}
-                </div>
-                <div className="mt-6 flex justify-center">
-                  <Button 
-                    onClick={handlePaymentSuccess} 
-                    className="bg-green-600 hover:bg-green-700"
-                    disabled={paymentProcessing}
-                  >
-                    {paymentProcessing ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-r-2 border-white mr-2"></div>
-                        Processing...
-                      </>
-                    ) : (
-                      "I've Completed the Payment"
-                    )}
-                  </Button>
                 </div>
               </>
             )}
