@@ -90,7 +90,7 @@ const Cart = () => {
       const orderData = {
         user_name: deliveryDetails.name || deliveryDetails.recipientName,
         user_phone: deliveryDetails.mobileNumber,
-        user_email: "",
+        user_email: deliveryDetails.email || "",
         total_amount: calculateTotal(),
         shipping_address: deliveryDetails,
         items: cartItems.map(item => ({
@@ -115,7 +115,7 @@ const Cart = () => {
       
       toast({
         title: "Payment Successful",
-        description: "We've received your payment and sent a confirmation to your WhatsApp. The order details have been sent to our team.",
+        description: "We've received your payment and sent a confirmation to your WhatsApp. Order details have been sent to our team and you'll receive updates shortly.",
         variant: "default"
       });
       
