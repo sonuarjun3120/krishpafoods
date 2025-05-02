@@ -1,7 +1,8 @@
+
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Trash2, QrCode, CreditCard, Search, Package } from "lucide-react";
+import { Trash2, QrCode, CreditCard, Search, Package, CheckCircle } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { DeliveryDetailsForm } from "@/components/DeliveryDetailsForm";
 import { toast } from "@/hooks/use-toast";
