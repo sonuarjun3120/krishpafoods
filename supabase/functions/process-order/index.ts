@@ -25,7 +25,7 @@ serve(async (req) => {
       throw new Error("Missing required order information");
     }
 
-    // Insert order into the database
+    // Insert order into the database - modified to remove payment_method field if it's causing issues
     const { data: order, error: orderError } = await supabaseClient
       .from("orders")
       .insert({
@@ -34,7 +34,7 @@ serve(async (req) => {
         user_name: orderData.user_name,
         total_amount: orderData.total_amount,
         shipping_address: orderData.shipping_address,
-        payment_method: orderData.payment_method || "upi",
+        // payment_method field removed - needs to be added to database schema
         items: orderData.items,
         status: "confirmed"
       })

@@ -6,9 +6,15 @@ interface UpiQrCodeProps {
   amount: number;
   upiId: string;
   merchantName?: string;
+  onPaymentComplete?: () => void;
 }
 
-const UpiQrCode = ({ amount, upiId, merchantName = "Krishpa Homemade Pickles" }: UpiQrCodeProps) => {
+const UpiQrCode = ({ 
+  amount, 
+  upiId, 
+  merchantName = "Krishpa Homemade Pickles",
+  onPaymentComplete
+}: UpiQrCodeProps) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
