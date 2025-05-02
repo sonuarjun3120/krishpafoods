@@ -1,3 +1,4 @@
+
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -24,7 +25,7 @@ const Cart = () => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("cart");
   const [paymentTimeout, setPaymentTimeout] = useState<number | null>(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"upi" | "cod" | "bank" | null>("upi");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"upi" | "bank" | null>("upi");
   const [paymentError, setPaymentError] = useState<string | null>(null);
   
   const calculateSubtotal = () => {
@@ -454,7 +455,12 @@ const Cart = () => {
                       <h3 className="font-medium text-gray-800">Payment Method</h3>
                       
                       <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-                        <RadioGroup defaultValue="upi" className="space-y-4">
+                        <RadioGroup 
+                          defaultValue="upi" 
+                          className="space-y-4"
+                          value={selectedPaymentMethod || "upi"}
+                          onValueChange={(val) => setSelectedPaymentMethod(val as "upi" | "bank")}
+                        >
                           <div className="flex items-center space-x-3 bg-white p-3 rounded-md border border-gray-200 hover:border-primary/50 transition-all cursor-pointer">
                             <RadioGroupItem value="upi" id="upi" className="text-primary" />
                             <label htmlFor="upi" className="flex items-center justify-between w-full cursor-pointer">
@@ -490,7 +496,7 @@ const Cart = () => {
 
                       <Button 
                         className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
-                        onClick={handlePayWithUpi}
+                        onClick={selectedPaymentMethod === "upi" ? handlePayWithUpi : handleBankTransfer}
                         disabled={cartItems.length === 0}
                       >
                         Proceed to Payment
@@ -527,4 +533,33 @@ const Cart = () => {
               </div>
             ) : (
               <div className="text-center text-gray-600 mt-12">
-                <p className="mb-6">Your cart is empty.</p
+                <p className="mb-6">Your cart is empty.</p>
+                <Link to="/shop">
+                  <Button>
+                    Continue Shopping
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="orders">
+            <OrderHistory />
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={showQrCode} onOpenChange={setShowQrCode}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{getPaymentDialogTitle()}</DialogTitle>
+          </DialogHeader>
+          {renderPaymentDialogContent()}
+        </DialogContent>
+      </Dialog>
+    </Layout>
+  );
+};
+
+export default Cart;
