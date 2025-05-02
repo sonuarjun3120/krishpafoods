@@ -13,6 +13,7 @@ import OrderHistory from "@/components/OrderHistory";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -23,9 +24,9 @@ const Cart = () => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("cart");
   const [paymentTimeout, setPaymentTimeout] = useState<number | null>(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"upi" | "cod" | "bank" | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"upi" | "cod" | "bank" | null>("upi");
   const [paymentError, setPaymentError] = useState<string | null>(null);
-
+  
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
@@ -95,14 +96,6 @@ const Cart = () => {
     }, 10000);
     
     setPaymentTimeout(timeout);
-  };
-  
-  const handleCashOnDelivery = () => {
-    if (!validateDeliveryDetails()) return;
-    
-    setSelectedPaymentMethod("cod");
-    // Process COD order immediately
-    processOrder("cod");
   };
   
   const handleBankTransfer = () => {
@@ -457,31 +450,60 @@ const Cart = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-gray-800">Payment Method</h3>
+                      
+                      <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                        <RadioGroup defaultValue="upi" className="space-y-4">
+                          <div className="flex items-center space-x-3 bg-white p-3 rounded-md border border-gray-200 hover:border-primary/50 transition-all cursor-pointer">
+                            <RadioGroupItem value="upi" id="upi" className="text-primary" />
+                            <label htmlFor="upi" className="flex items-center justify-between w-full cursor-pointer">
+                              <div className="flex items-center gap-3">
+                                <div className="bg-purple-100 p-2 rounded-md">
+                                  <QrCode size={18} className="text-purple-600" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-900">UPI Payment</p>
+                                  <p className="text-sm text-gray-500">Pay using any UPI app</p>
+                                </div>
+                              </div>
+                              <img src="/upi-india-logo.png" alt="UPI" className="h-6" />
+                            </label>
+                          </div>
+                          
+                          <div className="flex items-center space-x-3 bg-white p-3 rounded-md border border-gray-200 hover:border-primary/50 transition-all cursor-pointer">
+                            <RadioGroupItem value="bank" id="bank" className="text-primary" />
+                            <label htmlFor="bank" className="flex items-center justify-between w-full cursor-pointer">
+                              <div className="flex items-center gap-3">
+                                <div className="bg-blue-100 p-2 rounded-md">
+                                  <CreditCard size={18} className="text-blue-600" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-900">Bank Transfer</p>
+                                  <p className="text-sm text-gray-500">Direct bank deposit</p>
+                                </div>
+                              </div>
+                            </label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+
                       <Button 
                         className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
                         onClick={handlePayWithUpi}
                         disabled={cartItems.length === 0}
                       >
-                        <QrCode size={18} /> Pay with UPI QR
+                        Proceed to Payment
                       </Button>
                       
-                      <Button 
-                        className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
-                        onClick={handleCashOnDelivery}
-                        disabled={cartItems.length === 0}
-                      >
-                        <Banknote size={18} /> Cash on Delivery
-                      </Button>
-                      
-                      <Button 
-                        className="w-full flex items-center justify-center gap-2" 
-                        variant="outline"
-                        onClick={handleBankTransfer}
-                        disabled={cartItems.length === 0}
-                      >
-                        <CreditCard size={18} /> Bank Transfer
-                      </Button>
+                      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-4">
+                        <div className="flex items-center gap-1">
+                          <img src="/secured-by-icon.svg" alt="Secured" className="h-4 w-4" />
+                          <span>Secure Payment</span>
+                        </div>
+                        <span>•</span>
+                        <span>100% Money Back Guarantee</span>
+                      </div>
                     </div>
 
                     <div className="mt-6">
@@ -505,55 +527,4 @@ const Cart = () => {
               </div>
             ) : (
               <div className="text-center text-gray-600 mt-12">
-                <p className="mb-6">Your cart is empty.</p>
-                <Link to="/shop">
-                  <Button className="bg-primary hover:bg-primary/90">
-                    Browse Products
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="orders">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <Alert className="mb-4 bg-amber-50 border-amber-200">
-                <AlertTitle className="flex items-center gap-2">
-                  <Package className="h-4 w-4" /> Check Your Order Status
-                </AlertTitle>
-                <AlertDescription>
-                  After payment completion, you can track your orders here. Your new order will appear in the order history once payment is processed.
-                </AlertDescription>
-              </Alert>
-              <OrderHistory />
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Payment Dialog */}
-      <Dialog open={showQrCode} onOpenChange={(open) => {
-        if (!open && paymentTimeout) {
-          clearTimeout(paymentTimeout);
-          setPaymentTimeout(null);
-        }
-        if (!paymentProcessing && !paymentSuccess) {
-          setShowQrCode(open);
-        }
-      }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              {getPaymentDialogTitle()}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            {renderPaymentDialogContent()}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </Layout>
-  );
-};
-
-export default Cart;
+                <p className="mb-6">Your cart is empty.</p
