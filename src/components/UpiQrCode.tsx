@@ -1,23 +1,30 @@
 
 import React, { useEffect, useState } from "react";
-import { QrCode } from "lucide-react";
+import { QrCode, Check, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UpiQrCodeProps {
   amount: number;
   upiId: string;
   merchantName?: string;
-  onPaymentComplete?: () => void;
+  onPaymentComplete?: (paymentStatus: string) => void;
+  orderId?: string;
+  firebaseWebhookUrl?: string;
 }
 
 const UpiQrCode = ({ 
   amount, 
   upiId, 
   merchantName = "Krishpa Homemade Pickles",
-  onPaymentComplete
+  onPaymentComplete,
+  orderId,
+  firebaseWebhookUrl
 }: UpiQrCodeProps) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<"pending" | "success" | "failed">("pending");
 
   useEffect(() => {
     const generateQrCode = async () => {
@@ -52,6 +59,38 @@ const UpiQrCode = ({
     generateQrCode();
   }, [amount, upiId, merchantName]);
 
+  const handlePaymentSuccess = async () => {
+    setPaymentStatus("success");
+    
+    // If we have a Firebase webhook URL and order ID, send the webhook
+    if (firebaseWebhookUrl && orderId) {
+      try {
+        const { data, error } = await supabase.functions.invoke('send-firebase-webhook', {
+          body: {
+            orderId,
+            paymentStatus: "success",
+            firebaseWebhookUrl
+          }
+        });
+
+        if (error) {
+          console.error("Failed to send webhook to Firebase:", error);
+          setError("Failed to notify your Firebase backend. Please check logs.");
+        } else {
+          console.log("Webhook sent successfully:", data);
+        }
+      } catch (err) {
+        console.error("Error sending webhook:", err);
+        setError("Failed to notify your Firebase backend. Please check logs.");
+      }
+    }
+
+    // Call the onPaymentComplete callback if provided
+    if (onPaymentComplete) {
+      onPaymentComplete("success");
+    }
+  };
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="bg-white p-4 rounded-md shadow-sm border">
@@ -61,7 +100,7 @@ const UpiQrCode = ({
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-[200px] w-[200px] bg-gray-100">
-            <QrCode size={72} className="text-red-400 mb-2" />
+            <AlertCircle size={72} className="text-red-400 mb-2" />
             <p className="text-xs text-red-500">{error}</p>
           </div>
         ) : (
@@ -76,11 +115,30 @@ const UpiQrCode = ({
           </div>
         )}
       </div>
+      
       <div className="text-center">
         <p className="text-sm font-medium">Scan to pay ₹{amount.toFixed(2)}</p>
         <p className="text-xs text-gray-500">UPI ID: {upiId}</p>
         <p className="text-xs text-gray-500 mt-1">Or use UPI app to pay</p>
       </div>
+      
+      {/* Payment completed button - for testing or customer confirmation */}
+      {paymentStatus === "pending" && (
+        <Button 
+          onClick={handlePaymentSuccess} 
+          variant="outline" 
+          className="mt-4 w-full"
+        >
+          I've Completed the Payment
+        </Button>
+      )}
+      
+      {paymentStatus === "success" && (
+        <div className="flex items-center text-green-600 font-medium mt-2">
+          <Check className="mr-1" size={16} />
+          Payment completed successfully
+        </div>
+      )}
     </div>
   );
 };

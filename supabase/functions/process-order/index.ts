@@ -36,7 +36,7 @@ serve(async (req) => {
         shipping_address: orderData.shipping_address,
         // payment_method field removed - needs to be added to database schema
         items: orderData.items,
-        status: "confirmed"
+        status: orderData.payment_method === "upi" ? "pending_payment" : "confirmed"
       })
       .select()
       .single();
