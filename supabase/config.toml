@@ -41,3 +41,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.send-firebase-webhook]
 verify_jwt = false
+[functions.razorpay-payment]
+verify_jwt = false

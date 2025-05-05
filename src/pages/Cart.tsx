@@ -1,4 +1,3 @@
-
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -15,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { createRazorpayOrder } from "@/utils/paymentUtils";
+import RazorpayCheckout from "@/components/RazorpayCheckout";
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -25,8 +26,9 @@ const Cart = () => {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("cart");
   const [paymentTimeout, setPaymentTimeout] = useState<number | null>(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"upi" | "bank" | null>("upi");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"upi" | "bank" | "razorpay" | null>("upi");
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [razorpayOrderData, setRazorpayOrderData] = useState<any>(null);
   
   const calculateSubtotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
@@ -114,10 +116,87 @@ const Cart = () => {
     setPaymentTimeout(timeout);
   };
 
+  const handleRazorpayPayment = async () => {
+    if (!validateDeliveryDetails()) return;
+    
+    try {
+      setPaymentProcessing(true);
+      setSelectedPaymentMethod("razorpay");
+      setPaymentError(null);
+      
+      // First create an order in Supabase
+      const orderData = {
+        user_name: deliveryDetails.name || deliveryDetails.recipientName,
+        user_phone: deliveryDetails.mobileNumber,
+        user_email: deliveryDetails.email || "",
+        total_amount: calculateTotal(),
+        shipping_address: deliveryDetails,
+        payment_method: "razorpay",
+        items: cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          weight: item.weight,
+          quantity: item.quantity,
+          image: item.image
+        }))
+      };
+
+      const response = await supabase.functions.invoke('process-order', {
+        body: { orderData }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || "Failed to process order");
+      }
+
+      const order = response.data.order;
+      
+      // Now create a Razorpay order
+      const razorpayResponse = await createRazorpayOrder({
+        orderId: order.id,
+        amount: calculateTotal()
+      });
+      
+      if (!razorpayResponse || !razorpayResponse.order) {
+        throw new Error("Failed to create Razorpay order");
+      }
+      
+      // Save the Razorpay order data
+      setRazorpayOrderData({
+        id: order.id,
+        amount: calculateTotal(),
+        name: deliveryDetails.name || deliveryDetails.recipientName,
+        email: deliveryDetails.email || undefined,
+        phone: deliveryDetails.mobileNumber,
+        razorpayOrderId: razorpayResponse.order.id
+      });
+      
+      setShowQrCode(true);
+
+    } catch (error: any) {
+      console.error("Error initiating Razorpay payment:", error);
+      setPaymentError(error.message || "There was a problem processing your order.");
+      
+      toast({
+        title: "Order Processing Error",
+        description: error.message || "There was a problem processing your order.",
+        variant: "destructive"
+      });
+    } finally {
+      setPaymentProcessing(false);
+    }
+  };
+
   const processOrder = async (paymentMethod: string) => {
     try {
       setPaymentProcessing(true);
       setPaymentError(null);
+      
+      // Skip for Razorpay as the order is already created
+      if (paymentMethod === "razorpay" && razorpayOrderData) {
+        return;
+      }
       
       const orderData = {
         user_name: deliveryDetails.name || deliveryDetails.recipientName,
@@ -164,11 +243,11 @@ const Cart = () => {
           setActiveTab("orders"); // Automatically switch to orders tab
         }, 5000);
       } else {
-        // For COD, redirect to orders tab immediately
+        // For other methods, redirect to orders tab immediately
         setActiveTab("orders");
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing order:", error);
       setPaymentError(error.message || "There was a problem processing your order. Please try again.");
       setPaymentSuccess(false);
@@ -194,12 +273,43 @@ const Cart = () => {
     processOrder(selectedPaymentMethod || "upi");
   };
 
+  const handleRazorpaySuccess = () => {
+    setPaymentSuccess(true);
+    
+    toast({
+      title: "Payment Successful",
+      description: "Your payment with Razorpay has been completed successfully!",
+      variant: "default"
+    });
+    
+    clearCart();
+    
+    // Close dialog and switch to orders tab
+    setTimeout(() => {
+      setShowQrCode(false);
+      setPaymentSuccess(false);
+      setSelectedPaymentMethod(null);
+      setActiveTab("orders"); // Automatically switch to orders tab
+    }, 3000);
+  };
+
+  const handleRazorpayError = (error: string) => {
+    setPaymentError(error || "Payment failed");
+    
+    toast({
+      title: "Payment Failed",
+      description: error || "There was an issue with your payment. Please try again.",
+      variant: "destructive"
+    });
+  };
+
   // Generate dialog title based on payment method
   const getPaymentDialogTitle = () => {
     if (paymentSuccess) return "Payment Complete";
     
     if (selectedPaymentMethod === "upi") return "Scan & Pay with UPI";
     if (selectedPaymentMethod === "bank") return "Bank Transfer Details";
+    if (selectedPaymentMethod === "razorpay") return "Razorpay Payment";
     
     return "Payment";
   };
@@ -289,6 +399,24 @@ const Cart = () => {
             <p>Please use your name as reference in the transaction.</p>
             <p>After payment, you'll receive a confirmation on WhatsApp.</p>
             <p className="text-xs text-gray-400 mt-1">(Payment will be auto-detected in a few seconds for demo purposes)</p>
+          </div>
+        </div>
+      );
+    }
+    
+    if (selectedPaymentMethod === "razorpay" && razorpayOrderData) {
+      return (
+        <div className="text-center space-y-4">
+          <div className="bg-white p-4 rounded-md shadow-sm border">
+            <h3 className="font-medium text-lg mb-3">Razorpay Payment</h3>
+            <p className="mb-4">Click the button below to complete your payment with Razorpay.</p>
+            <p className="text-lg font-bold mb-4">₹{calculateTotal().toFixed(2)}</p>
+            
+            <RazorpayCheckout 
+              orderData={razorpayOrderData}
+              onPaymentSuccess={handleRazorpaySuccess}
+              onPaymentError={handleRazorpayError}
+            />
           </div>
         </div>
       );
@@ -459,7 +587,7 @@ const Cart = () => {
                           defaultValue="upi" 
                           className="space-y-4"
                           value={selectedPaymentMethod || "upi"}
-                          onValueChange={(val) => setSelectedPaymentMethod(val as "upi" | "bank")}
+                          onValueChange={(val) => setSelectedPaymentMethod(val as "upi" | "bank" | "razorpay")}
                         >
                           <div className="flex items-center space-x-3 bg-white p-3 rounded-md border border-gray-200 hover:border-primary/50 transition-all cursor-pointer">
                             <RadioGroupItem value="upi" id="upi" className="text-primary" />
@@ -491,12 +619,37 @@ const Cart = () => {
                               </div>
                             </label>
                           </div>
+                          
+                          {/* Razorpay Option */}
+                          <div className="flex items-center space-x-3 bg-white p-3 rounded-md border border-gray-200 hover:border-primary/50 transition-all cursor-pointer">
+                            <RadioGroupItem value="razorpay" id="razorpay" className="text-primary" />
+                            <label htmlFor="razorpay" className="flex items-center justify-between w-full cursor-pointer">
+                              <div className="flex items-center gap-3">
+                                <div className="bg-blue-100 p-2 rounded-md">
+                                  <Banknote size={18} className="text-blue-600" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-900">Razorpay</p>
+                                  <p className="text-sm text-gray-500">Pay with card, UPI, or wallet via Razorpay</p>
+                                </div>
+                              </div>
+                              <img src="https://razorpay.com/build/browser/static/razorpay-logo-white.934a6e7d.svg" 
+                                   alt="Razorpay" 
+                                   className="h-6 bg-blue-500 p-1 rounded" />
+                            </label>
+                          </div>
                         </RadioGroup>
                       </div>
 
                       <Button 
                         className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
-                        onClick={selectedPaymentMethod === "upi" ? handlePayWithUpi : handleBankTransfer}
+                        onClick={
+                          selectedPaymentMethod === "upi" 
+                            ? handlePayWithUpi 
+                            : selectedPaymentMethod === "bank" 
+                              ? handleBankTransfer
+                              : handleRazorpayPayment
+                        }
                         disabled={cartItems.length === 0}
                       >
                         Proceed to Payment
@@ -524,6 +677,11 @@ const Cart = () => {
                         </div>
                         <div className="bg-gray-100 p-2 rounded">
                           <svg height="20" viewBox="0 0 780 500" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M40 0H740C762.091 0 780 17.9086 780 40V460C780 482.091 762.091 500 740 500H40C17.9086 500 0 482.091 0 460V40C0 17.9086 17.9086 0 40 0Z" fill="#EFF3F5"></path><path fillRule="evenodd" clipRule="evenodd" d="M472.56 188.376C472.56 179.714 464.844 172.736 455.333 172.736C445.823 172.736 438.107 179.714 438.107 188.376C438.107 197.05 445.823 204.028 455.333 204.028C464.844 204.028 472.56 197.05 472.56 188.376ZM455.333 180.928C460.254 180.928 464.277 184.238 464.254 188.376C464.277 192.526 460.254 195.848 455.333 195.848C450.412 195.848 446.389 192.526 446.389 188.376C446.389 184.238 450.412 180.928 455.333 180.928Z" fill="#253B80"></path><path fillRule="evenodd" clipRule="evenodd" d="M438.107 172.736H459.356V179.714" fill="#253B80"></path></svg>
+                        </div>
+                        <div className="bg-blue-500 p-1 rounded">
+                          <img src="https://razorpay.com/build/browser/static/razorpay-logo-white.934a6e7d.svg" 
+                               alt="Razorpay" 
+                               className="h-6" />
                         </div>
                       </div>
                       <p className="mt-3 text-xs text-gray-500">After payment is complete, check your order status in the Order History tab.</p>

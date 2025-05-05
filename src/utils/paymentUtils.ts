@@ -56,3 +56,61 @@ export const getOrderById = async (orderId: string) => {
     throw error;
   }
 };
+
+/**
+ * Creates a Razorpay order
+ * @param orderData Order data including amount and order ID
+ */
+export const createRazorpayOrder = async (orderData: {
+  orderId: string;
+  amount: number;
+}) => {
+  try {
+    const { data, error } = await supabase.functions.invoke("razorpay-payment", {
+      body: {
+        action: "create_order",
+        orderData,
+      },
+    });
+
+    if (error) {
+      console.error("Error creating Razorpay order:", error);
+      throw new Error(`Failed to create Razorpay order: ${error.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in createRazorpayOrder:", error);
+    throw error;
+  }
+};
+
+/**
+ * Verifies a Razorpay payment
+ * @param paymentData Payment verification data
+ */
+export const verifyRazorpayPayment = async (paymentData: {
+  orderId: string;
+  paymentId: string;
+  signature: string;
+  razorpayOrderId: string;
+}) => {
+  try {
+    const { data, error } = await supabase.functions.invoke("razorpay-payment", {
+      body: {
+        action: "verify_payment",
+        ...paymentData,
+      },
+    });
+
+    if (error) {
+      console.error("Error verifying Razorpay payment:", error);
+      throw new Error(`Failed to verify payment: ${error.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in verifyRazorpayPayment:", error);
+    throw error;
+  }
+};
