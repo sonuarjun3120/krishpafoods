@@ -32,7 +32,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="flex items-center">
           <img 
-            src="/lovable-uploads/27aec43b-a588-481f-a3cb-bae4f348578e.png" 
+            src="/lovable-uploads/3125a371-456a-4fe3-9cf3-a17060e9457b.png" 
             alt="Krishpa Home Made Foods" 
             className="h-16 w-auto"
           />
@@ -62,7 +62,7 @@ const Navbar = () => {
         <div className="flex items-center space-x-3">
           <Link to="/cart">
             <Button variant="outline" size="icon" className="relative border-[#FEF7CD] text-[#FEF7CD] hover:bg-[#7C3D1D] hover:text-[#FEF7CD]">
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className="h-5 w-5" color="#5C2A12" />
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 {cartCount}
               </span>
