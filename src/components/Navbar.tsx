@@ -32,7 +32,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="flex items-center">
           <img 
-            src="/lovable-uploads/db1820b3-37e6-4219-8145-f74e45341a71.png" 
+            src="/lovable-uploads/27aec43b-a588-481f-a3cb-bae4f348578e.png" 
             alt="Krishpa Home Made Foods" 
             className="h-16 w-auto"
           />
