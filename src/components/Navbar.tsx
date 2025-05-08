@@ -34,7 +34,7 @@ const Navbar = () => {
           <img 
             src="/lovable-uploads/3125a371-456a-4fe3-9cf3-a17060e9457b.png" 
             alt="Krishpa Home Made Foods" 
-            className="h-16 w-auto"
+            className="h-20 w-auto" // Increased height from h-16 to h-20
           />
         </Link>
         
