@@ -8,7 +8,7 @@ const Index = () => {
   const featuredProducts = products.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-secondary/20">
+    <div className="min-h-screen bg-[#FFF8F0]">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         <header className="text-center mb-12">
