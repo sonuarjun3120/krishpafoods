@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { verifyRazorpayPayment } from '@/utils/paymentUtils';
+import { CreditCard, Wallet, Smartphone } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -116,12 +117,32 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
   };
 
   return (
-    <Button
-      onClick={handlePayment}
-      className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
-    >
-      Pay with Razorpay
-    </Button>
+    <div className="space-y-4">
+      <Button
+        onClick={handlePayment}
+        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
+      >
+        Pay Now
+      </Button>
+      
+      <div className="grid grid-cols-3 gap-2 mt-2">
+        <div className="flex flex-col items-center justify-center p-2 border rounded-md">
+          <CreditCard className="h-5 w-5 text-gray-700 mb-1" />
+          <span className="text-xs">Credit Card</span>
+        </div>
+        <div className="flex flex-col items-center justify-center p-2 border rounded-md">
+          <Wallet className="h-5 w-5 text-gray-700 mb-1" />
+          <span className="text-xs">UPI</span>
+        </div>
+        <div className="flex flex-col items-center justify-center p-2 border rounded-md">
+          <Smartphone className="h-5 w-5 text-gray-700 mb-1" />
+          <span className="text-xs">Wallets</span>
+        </div>
+      </div>
+      <p className="text-xs text-center text-gray-500">
+        Secured by Razorpay. Pay using Credit/Debit card, UPI, Net Banking, and more.
+      </p>
+    </div>
   );
 };
 
