@@ -20,6 +20,7 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
   const { toast } = useToast();
   const { addToCart } = useCart();
   const [selectedWeight, setSelectedWeight] = useState<string>(pricing[0].weight);
+  const [isHovered, setIsHovered] = useState(false);
   
   // Create an array of images for the carousel
   const images = [
@@ -57,7 +58,11 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
   };
 
   return (
-    <Card className="overflow-hidden transition-transform hover:scale-[1.02] duration-300 bg-white">
+    <Card 
+      className="overflow-hidden transition-all duration-300 bg-white hover:shadow-lg"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <CardHeader className="p-0">
         <Link to={`/product/${id}`}>
           <div className="relative w-full h-48 overflow-hidden">
@@ -66,15 +71,18 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
                 key={index}
                 src={img}
                 alt={`${name} view ${index + 1}`}
-                className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                className={`absolute top-0 left-0 w-full h-full object-cover transition-all duration-1000 ${
                   index === currentImageIndex ? "opacity-100" : "opacity-0"
-                }`}
+                } ${isHovered ? "scale-110" : "scale-100"}`}
               />
             ))}
+            <div className={`absolute inset-0 bg-black transition-opacity duration-300 ${
+              isHovered ? "opacity-20" : "opacity-0"
+            }`}></div>
           </div>
         </Link>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className={`p-4 transition-all duration-300 ${isHovered ? "bg-gray-50" : ""}`}>
         <Link to={`/product/${id}`}>
           <CardTitle className="font-playfair mb-2 text-primary hover:text-primary/80">{name}</CardTitle>
         </Link>
@@ -97,7 +105,7 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
           <p className="font-bold text-primary whitespace-nowrap">₹{selectedPricing.price}</p>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2">
+      <CardFooter className={`flex gap-2 transition-all duration-300 ${isHovered ? "bg-gray-50" : ""}`}>
         <Button 
           className="w-full bg-[#8b4513] hover:bg-[#8b4513]/90 transition-all duration-300"
           onClick={handleAddToCart}
