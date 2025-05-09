@@ -5,19 +5,13 @@ interface TestimonialProps {
   name: string;
   location: string;
   quote: string;
-  image?: string;
 }
 
-const TestimonialCard = ({ name, location, quote, image }: TestimonialProps) => {
+const TestimonialCard = ({ name, location, quote }: TestimonialProps) => {
   return (
-    <Card className="bg-white shadow-md">
+    <Card className="bg-white shadow-md transition-all hover:shadow-lg duration-300 hover:translate-y-[-5px]">
       <CardContent className="p-6">
         <div className="flex flex-col items-center text-center">
-          {image && (
-            <div className="w-16 h-16 rounded-full overflow-hidden mb-4">
-              <img src={image} alt={name} className="w-full h-full object-cover" />
-            </div>
-          )}
           <div className="mb-4 text-amber-700">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9.59455 16C9.59455 16.5523 9.14684 17 8.59455 17H4.59455C4.04227 17 3.59455 16.5523 3.59455 16V13C3.59455 10.7909 5.38541 9 7.59455 9H8.59455C9.14684 9 9.59455 9.44772 9.59455 10V16Z" fill="currentColor"/>

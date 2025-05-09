@@ -1,3 +1,4 @@
+
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
 import TestimonialCard from "@/components/TestimonialCard";
@@ -98,7 +99,7 @@ const Home = () => {
           </div>
           <div className="text-center mt-10">
             <Link to="/shop">
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button className="bg-amber-600 hover:bg-amber-700 transition-all duration-300 transform hover:scale-105">
                 View All Products
               </Button>
             </Link>
@@ -115,7 +116,7 @@ const Home = () => {
           <p className="text-gray-700 mb-10 text-center max-w-2xl mx-auto">
             We're proud to bring the authentic taste of Telugu cuisine to homes around the world
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {testimonials.map(testimonial => (
               <TestimonialCard key={testimonial.id} {...testimonial} />
             ))}
@@ -124,7 +125,7 @@ const Home = () => {
       </section>
 
       {/* Call to Action */}
-      <section className="bg-primary text-white py-16">
+      <section className="bg-amber-600 text-white py-16 animate-fade-in">
         <div className="container mx-auto px-4 text-center">
           <h2 className="font-playfair text-3xl font-bold mb-6">
             Bring Home the Taste of Tradition
@@ -133,7 +134,7 @@ const Home = () => {
             From our family's kitchen to your table - experience the authentic flavors of Telugu cuisine with Krishpa Homemade Pickles.
           </p>
           <Link to="/shop">
-            <Button className="bg-amber-600 hover:bg-amber-700 text-white py-2 px-8 text-lg">
+            <Button className="bg-[#5C2A12] hover:bg-[#5C2A12]/90 text-white py-2 px-8 text-lg transition-all duration-300 hover:scale-105">
               Shop Now
             </Button>
           </Link>
