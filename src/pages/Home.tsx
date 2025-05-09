@@ -99,7 +99,7 @@ const Home = () => {
           </div>
           <div className="text-center mt-10">
             <Link to="/shop">
-              <Button className="bg-amber-600 hover:bg-amber-700 transition-all duration-300 transform hover:scale-105">
+              <Button className="bg-primary hover:bg-primary/90 transition-all duration-300 transform hover:scale-105">
                 View All Products
               </Button>
             </Link>

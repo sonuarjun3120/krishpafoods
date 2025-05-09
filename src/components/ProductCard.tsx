@@ -74,13 +74,13 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
       </CardContent>
       <CardFooter className="flex gap-2">
         <Button 
-          className="w-full bg-amber-600 hover:bg-amber-700 transition-all duration-300"
+          className="w-full bg-primary hover:bg-primary/90 transition-all duration-300"
           onClick={handleAddToCart}
         >
           Add to Cart
         </Button>
         <Link to={`/product/${id}`} className="w-full">
-          <Button className="w-full bg-amber-600 hover:bg-amber-700 transition-all duration-300">
+          <Button className="w-full bg-primary hover:bg-primary/90 transition-all duration-300">
             Buy Now
           </Button>
         </Link>
