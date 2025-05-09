@@ -1,12 +1,9 @@
-
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, X, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
 const Footer = () => {
-  return (
-    <footer className="bg-[#5C2A12] text-white">
+  return <footer className="bg-[#5C2A12] text-white">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -15,31 +12,13 @@ const Footer = () => {
               Authentic Telugu-style pickles made with traditional recipes from Andhra and Telangana.
             </p>
             <div className="flex space-x-4">
-              <a 
-                href="https://www.facebook.com/share/12Jf4ruQZYH/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                aria-label="Facebook" 
-                className="text-white hover:text-amber-200"
-              >
+              <a href="https://www.facebook.com/share/12Jf4ruQZYH/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-white hover:text-amber-200">
                 <Facebook size={20} />
               </a>
-              <a 
-                href="https://www.instagram.com/krishpafoods/profilecard/?igsh=bm5pNmF5ZjBkZXJw" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                aria-label="Instagram" 
-                className="text-white hover:text-amber-200"
-              >
+              <a href="https://www.instagram.com/krishpafoods/profilecard/?igsh=bm5pNmF5ZjBkZXJw" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-white hover:text-amber-200">
                 <Instagram size={20} />
               </a>
-              <a 
-                href="https://x.com/krishpafoods?t=DJZgt1mLRZ1QE-P301sJKQ&s=08" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                aria-label="X (formerly Twitter)" 
-                className="text-white hover:text-amber-200"
-              >
+              <a href="https://x.com/krishpafoods?t=DJZgt1mLRZ1QE-P301sJKQ&s=08" target="_blank" rel="noopener noreferrer" aria-label="X (formerly Twitter)" className="text-white hover:text-amber-200">
                 <X size={20} />
               </a>
             </div>
@@ -75,12 +54,8 @@ const Footer = () => {
               Subscribe to our newsletter for recipes and special offers.
             </p>
             <div className="flex">
-              <Input 
-                type="email" 
-                placeholder="Your email" 
-                className="bg-white text-black rounded-r-none" 
-              />
-              <Button className="bg-amber-600 hover:bg-amber-700 rounded-l-none">
+              <Input type="email" placeholder="Your email" className="bg-white text-black rounded-r-none" />
+              <Button className="rounded-l-none bg-[8b4513] bg-[#8b4513]">
                 Subscribe
               </Button>
             </div>
@@ -91,8 +66,6 @@ const Footer = () => {
           <p>&copy; {new Date().getFullYear()} Krishpa Homemade Pickles. All rights reserved.</p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;

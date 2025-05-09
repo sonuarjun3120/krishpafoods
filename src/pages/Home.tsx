@@ -1,4 +1,3 @@
-
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
 import TestimonialCard from "@/components/TestimonialCard";
@@ -7,12 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import products from "@/data/products";
 import testimonials from "@/data/testimonials";
-
 const Home = () => {
   const featuredProducts = products.filter(product => product.featured);
-
-  return (
-    <Layout>
+  return <Layout>
       {/* Hero Section */}
       <section className="relative bg-amber-50">
         <div className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
@@ -38,11 +34,7 @@ const Home = () => {
             </div>
           </div>
           <div className="md:w-1/2">
-            <img 
-              src="https://images.unsplash.com/photo-1589216532372-1c2a367900d9" 
-              alt="Assorted pickles in jars" 
-              className="rounded-lg shadow-lg w-full h-auto object-cover" 
-            />
+            <img src="https://images.unsplash.com/photo-1589216532372-1c2a367900d9" alt="Assorted pickles in jars" className="rounded-lg shadow-lg w-full h-auto object-cover" />
           </div>
         </div>
         <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-amber-50/80 to-transparent"></div>
@@ -93,9 +85,7 @@ const Home = () => {
             Handcrafted in small batches using traditional methods and the finest ingredients
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map(product => (
-              <ProductCard key={product.id} {...product} />
-            ))}
+            {featuredProducts.map(product => <ProductCard key={product.id} {...product} />)}
           </div>
           <div className="text-center mt-10">
             <Link to="/shop">
@@ -117,31 +107,27 @@ const Home = () => {
             We're proud to bring the authentic taste of Telugu cuisine to homes around the world
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonials.map(testimonial => (
-              <TestimonialCard key={testimonial.id} {...testimonial} />
-            ))}
+            {testimonials.map(testimonial => <TestimonialCard key={testimonial.id} {...testimonial} />)}
           </div>
         </div>
       </section>
 
       {/* Call to Action */}
-      <section className="bg-amber-600 text-white py-16 animate-fade-in">
+      <section className="text-white py-16 animate-fade-in bg-transparent">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="font-playfair text-3xl font-bold mb-6">
+          <h2 className="font-playfair text-3xl font-bold mb-6 text-secondary-foreground">
             Bring Home the Taste of Tradition
           </h2>
-          <p className="mb-8 max-w-2xl mx-auto">
+          <p className="mb-8 max-w-2xl mx-auto text-secondary-foreground">
             From our family's kitchen to your table - experience the authentic flavors of Telugu cuisine with Krishpa Homemade Pickles.
           </p>
           <Link to="/shop">
-            <Button className="bg-[#5C2A12] hover:bg-[#5C2A12]/90 text-white py-2 px-8 text-lg transition-all duration-300 hover:scale-105">
+            <Button className="text-white py-2 px-8 text-lg transition-all duration-300 hover:scale-105 bg-[#8b4513]">
               Shop Now
             </Button>
           </Link>
         </div>
       </section>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Home;
