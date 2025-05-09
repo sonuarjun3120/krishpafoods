@@ -1,3 +1,4 @@
+
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
 import products from "@/data/products";
@@ -10,7 +11,6 @@ import { ArrowLeft } from "lucide-react";
 
 const Shop = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [spiceFilter, setSpiceFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const location = useLocation();
   const navigate = useNavigate();
@@ -27,11 +27,9 @@ const Shop = () => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesSpice = spiceFilter === "all" || product.spiceLevel.toLowerCase() === spiceFilter.toLowerCase();
-    
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
     
-    return matchesSearch && matchesSpice && matchesCategory;
+    return matchesSearch && matchesCategory;
   });
 
   const handleGoBack = () => {
@@ -55,8 +53,8 @@ const Shop = () => {
           </h1>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white p-6 rounded-lg shadow-sm mb-8 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Search Products</label>
               <Input
@@ -83,27 +81,11 @@ const Shop = () => {
                 </SelectContent>
               </Select>
             </div>
-            
-            <div>
-              <label htmlFor="spice-level" className="block text-sm font-medium text-gray-700 mb-1">Spice Level</label>
-              <Select value={spiceFilter} onValueChange={setSpiceFilter}>
-                <SelectTrigger id="spice-level">
-                  <SelectValue placeholder="All Spice Levels" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Spice Levels</SelectItem>
-                  <SelectItem value="mild">Mild</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hot">Hot</SelectItem>
-                  <SelectItem value="extra hot">Extra Hot</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
         </div>
         
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
             {filteredProducts.map(product => (
               <ProductCard key={product.id} {...product} />
             ))}
@@ -114,6 +96,12 @@ const Shop = () => {
             <p className="text-gray-500">Try adjusting your search or filter criteria</p>
           </div>
         )}
+        
+        <div className="text-center mt-10">
+          <Button className="bg-[#8b4513] hover:bg-[#8b4513]/90 transition-all duration-300 transform hover:scale-105 animate-fade-in">
+            Explore Our Pickles
+          </Button>
+        </div>
       </div>
     </Layout>
   );

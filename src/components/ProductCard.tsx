@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +20,24 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
   const { toast } = useToast();
   const { addToCart } = useCart();
   const [selectedWeight, setSelectedWeight] = useState<string>(pricing[0].weight);
+  
+  // Create an array of images for the carousel
+  const images = [
+    image,
+    "https://images.unsplash.com/photo-1589216532372-1c2a367900d9",
+    "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9"
+  ];
+  
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Auto-change image every few seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [images.length]);
 
   const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0];
 
@@ -42,11 +60,18 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
     <Card className="overflow-hidden transition-transform hover:scale-[1.02] duration-300 bg-white">
       <CardHeader className="p-0">
         <Link to={`/product/${id}`}>
-          <img
-            src={image}
-            alt={name}
-            className="w-full h-48 object-cover"
-          />
+          <div className="relative w-full h-48 overflow-hidden">
+            {images.map((img, index) => (
+              <img
+                key={index}
+                src={img}
+                alt={`${name} view ${index + 1}`}
+                className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                  index === currentImageIndex ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            ))}
+          </div>
         </Link>
       </CardHeader>
       <CardContent className="p-4">
@@ -74,13 +99,13 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
       </CardContent>
       <CardFooter className="flex gap-2">
         <Button 
-          className="w-full bg-primary hover:bg-primary/90 transition-all duration-300"
+          className="w-full bg-[#8b4513] hover:bg-[#8b4513]/90 transition-all duration-300"
           onClick={handleAddToCart}
         >
           Add to Cart
         </Button>
         <Link to={`/product/${id}`} className="w-full">
-          <Button className="w-full bg-primary hover:bg-primary/90 transition-all duration-300">
+          <Button className="w-full bg-[#8b4513] hover:bg-[#8b4513]/90 transition-all duration-300">
             Buy Now
           </Button>
         </Link>
