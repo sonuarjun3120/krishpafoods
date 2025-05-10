@@ -31,14 +31,20 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
   
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Auto-change image every few seconds
+  // Image carousel interval that only runs when hovered
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 3000);
+    let interval: number | null = null;
     
-    return () => clearInterval(interval);
-  }, [images.length]);
+    if (isHovered) {
+      interval = window.setInterval(() => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+      }, 1000); // Faster rotation when hovering
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isHovered, images.length]);
 
   const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0];
 
@@ -61,7 +67,10 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
     <Card 
       className="overflow-hidden transition-all duration-300 bg-white hover:shadow-lg"
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setCurrentImageIndex(0); // Reset to main image when not hovering
+      }}
     >
       <CardHeader className="p-0">
         <Link to={`/product/${id}`}>

@@ -16,15 +16,23 @@ const ProductGallery = ({ image, name }: ProductGalleryProps) => {
   ];
   
   const [selectedImage, setSelectedImage] = useState(images[0]);
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div className="md:w-1/2 p-4">
-      <div className="mb-4">
+      <div 
+        className="mb-4 relative overflow-hidden rounded-lg"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <img 
           src={selectedImage} 
           alt={name} 
-          className="w-full h-96 object-cover rounded-lg"
+          className={`w-full h-96 object-cover transition-all duration-300 ${isHovered ? 'scale-110' : 'scale-100'}`}
         />
+        {isHovered && (
+          <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+        )}
       </div>
       <div className="flex space-x-2 overflow-x-auto pb-2">
         {images.map((img, index) => (
