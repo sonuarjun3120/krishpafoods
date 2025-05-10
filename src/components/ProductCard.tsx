@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,12 +21,72 @@ const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps
   const [selectedWeight, setSelectedWeight] = useState<string>(pricing[0].weight);
   const [isHovered, setIsHovered] = useState(false);
   
-  // Create an array of images for the carousel
-  const images = [
-    image,
-    "https://images.unsplash.com/photo-1589216532372-1c2a367900d9",
-    "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9"
-  ];
+  // Function to get product-specific images
+  const getProductImages = (productId: number, mainImage: string) => {
+    const baseImages = [mainImage];
+    
+    // Add product-specific secondary images based on product ID
+    switch(productId) {
+      case 1: // Avakaya Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1498936178812-4b2e558d2937",
+          "https://images.unsplash.com/photo-1608500218890-c4914cf4d7c0"
+        );
+        break;
+      case 2: // Gongura Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1439886183900-e79ec0057170",
+          "https://images.unsplash.com/photo-1721322800607-8c38375eef04"
+        );
+        break;
+      case 3: // Tomato Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1485833077593-4278bba3f11f",
+          "https://images.unsplash.com/photo-1438565434616-3ef039228b15"
+        );
+        break;
+      case 4: // Lemon Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1465379944081-7f47de8d74ac",
+          "https://images.unsplash.com/photo-1441057206919-63d19fac2369"
+        );
+        break;
+      case 5: // Green Chili Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1501286353178-1ec881214838",
+          "https://images.unsplash.com/photo-1469041797191-50ace28483c3"
+        );
+        break;
+      case 6: // Tamarind Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1452378174528-3090a4bba7b2",
+          "https://images.unsplash.com/photo-1487252665478-49b61b47f302"
+        );
+        break;
+      case 7: // Chicken Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1574484284002-952d92456975",
+          "https://images.unsplash.com/photo-1603360946369-dc9bb6258143"
+        );
+        break;
+      case 8: // Boneless Chicken Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1580217729415-08d9fe8d5438",
+          "https://images.unsplash.com/photo-1664288036226-29fd284eb555"
+        );
+        break;
+      default:
+        // For products without specific images, use generic ones
+        baseImages.push(
+          "https://images.unsplash.com/photo-1582562124811-c09040d0a901",
+          "https://images.unsplash.com/photo-1535268647677-300dbf3d78d1"
+        );
+    }
+    
+    return baseImages;
+  };
+  
+  const images = getProductImages(id, image);
   
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 

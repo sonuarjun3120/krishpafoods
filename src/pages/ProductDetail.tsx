@@ -63,7 +63,7 @@ const ProductDetail = () => {
         <ProductBreadcrumb category={product.category} productName={product.name} />
 
         <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden">
-          <ProductGallery image={product.image} name={product.name} />
+          <ProductGallery image={product.image} name={product.name} productId={product.id} />
           <ProductDetails
             name={product.name}
             pricing={product.pricing}
