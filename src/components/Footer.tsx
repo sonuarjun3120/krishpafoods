@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Instagram, X, Phone, Mail } from "lucide-react";
+import { Facebook, Instagram, Twitter, Phone, Mail, Youtube } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 const Footer = () => {
@@ -18,8 +18,11 @@ const Footer = () => {
               <a href="https://www.instagram.com/krishpafoods/profilecard/?igsh=bm5pNmF5ZjBkZXJw" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-white hover:text-amber-200">
                 <Instagram size={20} />
               </a>
-              <a href="https://x.com/krishpafoods?t=DJZgt1mLRZ1QE-P301sJKQ&s=08" target="_blank" rel="noopener noreferrer" aria-label="X (formerly Twitter)" className="text-white hover:text-amber-200">
-                <X size={20} />
+              <a href="https://x.com/krishpafoods?t=DJZgt1mLRZ1QE-P301sJKQ&s=08" target="_blank" rel="noopener noreferrer" aria-label="Twitter (formerly X)" className="text-white hover:text-amber-200">
+                <Twitter size={20} />
+              </a>
+              <a href="https://www.youtube.com/@krishpahomemadepickles" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="text-white hover:text-amber-200">
+                <Youtube size={20} />
               </a>
             </div>
           </div>

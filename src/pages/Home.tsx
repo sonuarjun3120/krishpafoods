@@ -1,6 +1,8 @@
+
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
 import TestimonialCard from "@/components/TestimonialCard";
+import ReviewForm from "@/components/ReviewForm";
 import Categories from "@/components/Categories";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -108,6 +110,13 @@ const Home = () => {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {testimonials.map(testimonial => <TestimonialCard key={testimonial.id} {...testimonial} />)}
+          </div>
+          
+          <div className="mt-16 max-w-3xl mx-auto">
+            <h3 className="font-playfair text-2xl font-bold text-primary mb-6 text-center">
+              Share Your Review
+            </h3>
+            <ReviewForm />
           </div>
         </div>
       </section>
