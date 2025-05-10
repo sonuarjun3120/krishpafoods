@@ -8,8 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import products from "@/data/products";
 import testimonials from "@/data/testimonials";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+
 const Home = () => {
   const featuredProducts = products.filter(product => product.featured);
+  const [refreshTestimonials, setRefreshTestimonials] = useState(0);
+  
+  // Force re-render of testimonials when a new one is added
+  const handleReviewSubmitted = () => {
+    setRefreshTestimonials(prev => prev + 1);
+  };
+
   return <Layout>
       {/* Hero Section */}
       <section className="relative bg-amber-50">
@@ -109,14 +119,23 @@ const Home = () => {
             We're proud to bring the authentic taste of Telugu cuisine to homes around the world
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonials.map(testimonial => <TestimonialCard key={testimonial.id} {...testimonial} />)}
+            {/* Key with refreshTestimonials to force re-render when new testimonials are added */}
+            {testimonials.map(testimonial => (
+              <TestimonialCard key={`${testimonial.id}-${refreshTestimonials}`} {...testimonial} />
+            ))}
           </div>
           
-          <div className="mt-16 max-w-3xl mx-auto">
-            <h3 className="font-playfair text-2xl font-bold text-primary mb-6 text-center">
-              Share Your Review
-            </h3>
-            <ReviewForm />
+          <div className="mt-16 max-w-3xl mx-auto text-center">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="bg-primary hover:bg-primary/90">
+                  Share Your Review
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <ReviewForm onReviewSubmitted={handleReviewSubmitted} />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </section>

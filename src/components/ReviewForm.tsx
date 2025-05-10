@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { addTestimonial } from "@/data/testimonials";
 
-const ReviewForm = () => {
+const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -23,11 +24,15 @@ const ReviewForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
+    // Add the testimonial to our data
+    const { name, location, quote } = formData;
+    addTestimonial(name, location, quote);
+    
+    // Simulate form submission delay
     setTimeout(() => {
       toast({
         title: "Review Submitted",
-        description: "Thank you for sharing your feedback! Your review has been submitted for approval.",
+        description: "Thank you for sharing your feedback! Your review has been added.",
       });
       
       setFormData({
@@ -36,7 +41,12 @@ const ReviewForm = () => {
         quote: ''
       });
       setIsSubmitting(false);
-    }, 1000);
+      
+      // Call callback if provided
+      if (onReviewSubmitted) {
+        onReviewSubmitted();
+      }
+    }, 800);
   };
 
   return (

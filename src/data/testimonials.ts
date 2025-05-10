@@ -33,4 +33,18 @@ const testimonials: Testimonial[] = [
   }
 ];
 
+// Function to add a new testimonial
+export const addTestimonial = (name: string, location: string, quote: string): Testimonial => {
+  const newId = testimonials.length > 0 ? Math.max(...testimonials.map(t => t.id)) + 1 : 1;
+  const newTestimonial: Testimonial = {
+    id: newId,
+    name,
+    location,
+    quote
+  };
+  
+  testimonials.unshift(newTestimonial); // Add to the beginning to show newest first
+  return newTestimonial;
+};
+
 export default testimonials;
