@@ -8,6 +8,9 @@ interface TestimonialProps {
 }
 
 const TestimonialCard = ({ name, location, quote }: TestimonialProps) => {
+  // Truncate the quote if it's too long
+  const displayedQuote = quote.length > 120 ? `${quote.substring(0, 120)}...` : quote;
+
   return (
     <Card className="bg-white shadow-md transition-all hover:shadow-lg duration-300 hover:translate-y-[-5px]">
       <CardContent className="p-6">
@@ -18,7 +21,7 @@ const TestimonialCard = ({ name, location, quote }: TestimonialProps) => {
               <path d="M19.5946 16C19.5946 16.5523 19.1468 17 18.5946 17H14.5946C14.0423 17 13.5946 16.5523 13.5946 16V13C13.5946 10.7909 15.3854 9 17.5946 9H18.5946C19.1468 9 19.5946 9.44772 19.5946 10V16Z" fill="currentColor"/>
             </svg>
           </div>
-          <p className="text-gray-700 mb-4">{quote}</p>
+          <p className="text-gray-700 mb-4">{displayedQuote}</p>
           <h4 className="font-playfair font-semibold text-primary">{name}</h4>
           <p className="text-sm text-gray-500">{location}</p>
         </div>

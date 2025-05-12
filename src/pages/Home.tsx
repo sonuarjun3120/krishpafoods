@@ -14,6 +14,13 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 const Home = () => {
   const featuredProducts = products.filter(product => product.featured);
   const [refreshTestimonials, setRefreshTestimonials] = useState(0);
+  const [showAllTestimonials, setShowAllTestimonials] = useState(false);
+  
+  // Initially show only 4 testimonials
+  const initialTestimonialsCount = 4;
+  const displayedTestimonials = showAllTestimonials 
+    ? testimonials 
+    : testimonials.slice(0, initialTestimonialsCount);
   
   // Force re-render of testimonials when a new one is added
   const handleReviewSubmitted = () => {
@@ -120,10 +127,25 @@ const Home = () => {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Key with refreshTestimonials to force re-render when new testimonials are added */}
-            {testimonials.map(testimonial => (
-              <TestimonialCard key={`${testimonial.id}-${refreshTestimonials}`} {...testimonial} />
+            {displayedTestimonials.map(testimonial => (
+              <TestimonialCard 
+                key={`${testimonial.id}-${refreshTestimonials}`} 
+                {...testimonial} 
+              />
             ))}
           </div>
+          
+          {testimonials.length > initialTestimonialsCount && (
+            <div className="mt-8 text-center">
+              <Button 
+                variant="outline" 
+                className="border-primary text-primary hover:bg-primary/10"
+                onClick={() => setShowAllTestimonials(!showAllTestimonials)}
+              >
+                {showAllTestimonials ? "Show Less" : "More Reviews"}
+              </Button>
+            </div>
+          )}
           
           <div className="mt-16 max-w-3xl mx-auto text-center">
             <Dialog>
