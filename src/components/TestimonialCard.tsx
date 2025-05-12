@@ -23,11 +23,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 interface TestimonialProps {
   id: string;
@@ -136,30 +131,6 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
-          {/* Show edit/delete buttons only if the user owns this review */}
-          {isOwner && (
-            <div className="flex gap-2 mt-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1"
-                onClick={() => setShowEditDialog(true)}
-              >
-                <Edit2 className="h-3 w-3" />
-                Edit
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-50"
-                onClick={() => setShowDeleteAlert(true)}
-              >
-                <Trash2 className="h-3 w-3" />
-                Delete
-              </Button>
-            </div>
-          )}
           
           {/* Email Verification Dialog */}
           <Dialog open={showEmailVerification} onOpenChange={setShowEmailVerification}>
