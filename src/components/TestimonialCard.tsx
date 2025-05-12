@@ -161,14 +161,11 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
             </div>
           )}
           
-          {/* Email Verification Popover - Fixed the issue by providing a proper button as PopoverTrigger child */}
-          <Popover open={showEmailVerification} onOpenChange={setShowEmailVerification}>
-            <PopoverTrigger>
-              <Button className="hidden" type="button" aria-hidden={true}>Verify</Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
+          {/* Email Verification Dialog */}
+          <Dialog open={showEmailVerification} onOpenChange={setShowEmailVerification}>
+            <DialogContent className="sm:max-w-md">
               <div className="space-y-4">
-                <h4 className="font-medium">Verify Review Ownership</h4>
+                <h4 className="font-medium text-lg">Verify Review Ownership</h4>
                 <p className="text-sm text-gray-500">
                   Enter the email you used when creating this review to verify ownership.
                 </p>
@@ -199,8 +196,8 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
                   </Button>
                 </div>
               </div>
-            </PopoverContent>
-          </Popover>
+            </DialogContent>
+          </Dialog>
           
           {/* Edit Dialog */}
           <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
