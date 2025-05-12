@@ -161,10 +161,10 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
             </div>
           )}
           
-          {/* Email Verification Popover */}
+          {/* Email Verification Popover - Fixed the issue by providing a proper button as PopoverTrigger child */}
           <Popover open={showEmailVerification} onOpenChange={setShowEmailVerification}>
-            <PopoverTrigger asChild>
-              <span></span> {/* Empty span to satisfy Popover API */}
+            <PopoverTrigger>
+              <Button className="hidden" type="button" aria-hidden={true}>Verify</Button>
             </PopoverTrigger>
             <PopoverContent className="w-80">
               <div className="space-y-4">
