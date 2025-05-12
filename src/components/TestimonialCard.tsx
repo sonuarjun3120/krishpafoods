@@ -1,12 +1,33 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, MoreHorizontal, Mail } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import EditReviewForm from "./EditReviewForm";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface TestimonialProps {
   id: string;
@@ -22,11 +43,14 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
   const { toast } = useToast();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationError, setVerificationError] = useState("");
   
   // Check if current user's email matches the testimonial email
   // We'll get the user email from localStorage for now
   const currentUserEmail = localStorage.getItem('userEmail');
-  const isOwner = currentUserEmail && user_email && currentUserEmail === user_email;
+  const [isOwner, setIsOwner] = useState(currentUserEmail && user_email && currentUserEmail === user_email);
   
   // Truncate the quote if it's too long
   const displayedQuote = quote.length > 120 ? `${quote.substring(0, 120)}...` : quote;
@@ -53,6 +77,22 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
     }
   };
 
+  const verifyOwnership = () => {
+    if (verificationEmail === user_email) {
+      // Store the email in localStorage for future verification
+      localStorage.setItem('userEmail', verificationEmail);
+      setIsOwner(true);
+      setShowEmailVerification(false);
+      setVerificationError("");
+      toast({
+        title: "Verification Successful",
+        description: "You can now edit or delete your review.",
+      });
+    } else {
+      setVerificationError("Email does not match the review's owner");
+    }
+  };
+
   return (
     <Card className="bg-white shadow-md transition-all hover:shadow-lg duration-300 hover:translate-y-[-5px]">
       <CardContent className="p-6">
@@ -66,6 +106,36 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
           <p className="text-gray-700 mb-4">{displayedQuote}</p>
           <h4 className="font-playfair font-semibold text-primary">{name}</h4>
           <p className="text-sm text-gray-500">{location}</p>
+          
+          {/* Options Menu */}
+          <div className="absolute top-4 right-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {isOwner ? (
+                  <>
+                    <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                      <Edit2 className="mr-2 h-4 w-4" />
+                      Edit Review
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowDeleteAlert(true)}>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Review
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem onClick={() => setShowEmailVerification(true)}>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Verify Ownership
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           
           {/* Show edit/delete buttons only if the user owns this review */}
           {isOwner && (
@@ -90,6 +160,47 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
               </Button>
             </div>
           )}
+          
+          {/* Email Verification Popover */}
+          <Popover open={showEmailVerification} onOpenChange={setShowEmailVerification}>
+            <PopoverTrigger asChild>
+              <span></span> {/* Empty span to satisfy Popover API */}
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-4">
+                <h4 className="font-medium">Verify Review Ownership</h4>
+                <p className="text-sm text-gray-500">
+                  Enter the email you used when creating this review to verify ownership.
+                </p>
+                <div className="space-y-2">
+                  <Input
+                    type="email"
+                    placeholder="Your email"
+                    value={verificationEmail}
+                    onChange={(e) => setVerificationEmail(e.target.value)}
+                  />
+                  {verificationError && (
+                    <p className="text-xs text-red-500">{verificationError}</p>
+                  )}
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowEmailVerification(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={verifyOwnership}
+                  >
+                    Verify
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           
           {/* Edit Dialog */}
           <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
