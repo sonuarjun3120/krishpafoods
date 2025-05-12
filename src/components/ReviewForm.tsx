@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { addTestimonial } from "@/data/testimonials";
 
 const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) => {
@@ -11,7 +12,8 @@ const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) =
   const [formData, setFormData] = useState({
     name: '',
     location: '',
-    quote: ''
+    quote: '',
+    email: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -20,16 +22,37 @@ const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) =
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Add the testimonial to our data
-    const { name, location, quote } = formData;
-    addTestimonial(name, location, quote);
-    
-    // Simulate form submission delay
-    setTimeout(() => {
+    try {
+      // Store user email in localStorage to identify their reviews
+      if (formData.email) {
+        localStorage.setItem('userEmail', formData.email);
+      }
+      
+      // Add to Supabase
+      const { data, error } = await supabase
+        .from('testimonials')
+        .insert([
+          { 
+            name: formData.name, 
+            location: formData.location, 
+            quote: formData.quote,
+            user_email: formData.email || null
+          }
+        ])
+        .select();
+        
+      if (error) throw error;
+      
+      // Add the testimonial to our local data as well
+      if (data && data[0]) {
+        const { name, location, quote, id, user_email } = data[0];
+        addTestimonial(name, location, quote, id, user_email);
+      }
+      
       toast({
         title: "Review Submitted",
         description: "Thank you for sharing your feedback! Your review has been added.",
@@ -38,15 +61,24 @@ const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) =
       setFormData({
         name: '',
         location: '',
-        quote: ''
+        quote: '',
+        email: ''
       });
-      setIsSubmitting(false);
       
       // Call callback if provided
       if (onReviewSubmitted) {
         onReviewSubmitted();
       }
-    }, 800);
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem submitting your review. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -74,6 +106,18 @@ const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) =
             onChange={handleChange}
             required
             placeholder="City, Country"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email (required to edit/delete your review later)</label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="your@email.com"
           />
         </div>
         

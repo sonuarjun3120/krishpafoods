@@ -7,14 +7,17 @@ import Categories from "@/components/Categories";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import products from "@/data/products";
-import testimonials from "@/data/testimonials";
-import { useState } from "react";
+import testimonials, { fetchTestimonials, editTestimonial, deleteTestimonial } from "@/data/testimonials";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 const Home = () => {
   const featuredProducts = products.filter(product => product.featured);
   const [refreshTestimonials, setRefreshTestimonials] = useState(0);
   const [showAllTestimonials, setShowAllTestimonials] = useState(false);
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
   
   // Initially show only 4 testimonials
   const initialTestimonialsCount = 4;
@@ -25,6 +28,45 @@ const Home = () => {
   // Force re-render of testimonials when a new one is added
   const handleReviewSubmitted = () => {
     setRefreshTestimonials(prev => prev + 1);
+  };
+  
+  // Fetch testimonials on component mount
+  useEffect(() => {
+    const loadTestimonials = async () => {
+      setIsLoading(true);
+      await fetchTestimonials();
+      setIsLoading(false);
+    };
+    
+    loadTestimonials();
+  }, [refreshTestimonials]);
+  
+  // Handle testimonial edit
+  const handleEditTestimonial = async (id: string, quote: string) => {
+    const success = await editTestimonial(id, quote);
+    if (success) {
+      setRefreshTestimonials(prev => prev + 1);
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to update your review. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handle testimonial delete
+  const handleDeleteTestimonial = async (id: string) => {
+    const success = await deleteTestimonial(id);
+    if (success) {
+      setRefreshTestimonials(prev => prev + 1);
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to delete your review. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return <Layout>
@@ -125,15 +167,25 @@ const Home = () => {
           <p className="text-gray-700 mb-10 text-center max-w-2xl mx-auto">
             We're proud to bring the authentic taste of Telugu cuisine to homes around the world
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Key with refreshTestimonials to force re-render when new testimonials are added */}
-            {displayedTestimonials.map(testimonial => (
-              <TestimonialCard 
-                key={`${testimonial.id}-${refreshTestimonials}`} 
-                {...testimonial} 
-              />
-            ))}
-          </div>
+          
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : testimonials.length === 0 ? (
+            <p className="text-center text-gray-500 py-12">No reviews yet. Be the first to share your experience!</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {displayedTestimonials.map(testimonial => (
+                <TestimonialCard 
+                  key={`${testimonial.id}-${refreshTestimonials}`} 
+                  {...testimonial}
+                  onEdit={handleEditTestimonial}
+                  onDelete={handleDeleteTestimonial}
+                />
+              ))}
+            </div>
+          )}
           
           {testimonials.length > initialTestimonialsCount && (
             <div className="mt-8 text-center">

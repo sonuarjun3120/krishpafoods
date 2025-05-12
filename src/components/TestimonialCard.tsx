@@ -1,15 +1,57 @@
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Edit2, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import EditReviewForm from "./EditReviewForm";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface TestimonialProps {
+  id: string;
   name: string;
   location: string;
   quote: string;
+  user_email?: string | null;
+  onDelete?: (id: string) => void;
+  onEdit?: (id: string, quote: string) => void;
 }
 
-const TestimonialCard = ({ name, location, quote }: TestimonialProps) => {
+const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEdit }: TestimonialProps) => {
+  const { toast } = useToast();
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  
+  // Check if current user's email matches the testimonial email
+  // We'll get the user email from localStorage for now
+  const currentUserEmail = localStorage.getItem('userEmail');
+  const isOwner = currentUserEmail && user_email && currentUserEmail === user_email;
+  
   // Truncate the quote if it's too long
   const displayedQuote = quote.length > 120 ? `${quote.substring(0, 120)}...` : quote;
+  
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(id);
+      toast({
+        title: "Review Deleted",
+        description: "Your review has been deleted successfully.",
+      });
+      setShowDeleteAlert(false);
+    }
+  };
+  
+  const handleEdit = (newQuote: string) => {
+    if (onEdit) {
+      onEdit(id, newQuote);
+      setShowEditDialog(false);
+      toast({
+        title: "Review Updated",
+        description: "Your review has been updated successfully.",
+      });
+    }
+  };
 
   return (
     <Card className="bg-white shadow-md transition-all hover:shadow-lg duration-300 hover:translate-y-[-5px]">
@@ -24,6 +66,60 @@ const TestimonialCard = ({ name, location, quote }: TestimonialProps) => {
           <p className="text-gray-700 mb-4">{displayedQuote}</p>
           <h4 className="font-playfair font-semibold text-primary">{name}</h4>
           <p className="text-sm text-gray-500">{location}</p>
+          
+          {/* Show edit/delete buttons only if the user owns this review */}
+          {isOwner && (
+            <div className="flex gap-2 mt-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1"
+                onClick={() => setShowEditDialog(true)}
+              >
+                <Edit2 className="h-3 w-3" />
+                Edit
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-50"
+                onClick={() => setShowDeleteAlert(true)}
+              >
+                <Trash2 className="h-3 w-3" />
+                Delete
+              </Button>
+            </div>
+          )}
+          
+          {/* Edit Dialog */}
+          <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+            <DialogContent>
+              <EditReviewForm 
+                id={id} 
+                initialQuote={quote}
+                onSubmit={handleEdit}
+                onCancel={() => setShowEditDialog(false)}
+              />
+            </DialogContent>
+          </Dialog>
+          
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete your review.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>
