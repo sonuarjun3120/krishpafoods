@@ -102,15 +102,16 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
           <h4 className="font-playfair font-semibold text-primary">{name}</h4>
           <p className="text-sm text-gray-500">{location}</p>
           
-          {/* Options Menu */}
-          <div className="absolute top-4 right-4">
+          {/* Options Menu - Fixed to make sure it doesn't disappear */}
+          <div className="absolute top-4 right-4 z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Open options menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-white shadow-md">
                 {isOwner ? (
                   <>
                     <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
