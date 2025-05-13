@@ -41,6 +41,7 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationError, setVerificationError] = useState("");
+  const [open, setOpen] = useState(false);
   
   // Check if current user's email matches the testimonial email
   // We'll get the user email from localStorage for now
@@ -102,29 +103,44 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
           <h4 className="font-playfair font-semibold text-primary">{name}</h4>
           <p className="text-sm text-gray-500">{location}</p>
           
-          {/* Options Menu - Fixed to make sure it doesn't disappear */}
-          <div className="absolute top-4 right-4 z-10">
-            <DropdownMenu>
+          {/* Options Menu - Fixed with proper positioning and styling */}
+          <div className="absolute top-4 right-4 z-50">
+            <DropdownMenu open={open} onOpenChange={setOpen}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 bg-white hover:bg-gray-100">
                   <MoreHorizontal className="h-4 w-4" />
                   <span className="sr-only">Open options menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white shadow-md">
+              <DropdownMenuContent 
+                align="end" 
+                className="bg-white shadow-md" 
+                sideOffset={5}
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                forceMount
+              >
                 {isOwner ? (
                   <>
-                    <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                    <DropdownMenuItem onClick={() => {
+                      setShowEditDialog(true);
+                      setOpen(false);
+                    }}>
                       <Edit2 className="mr-2 h-4 w-4" />
                       Edit Review
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowDeleteAlert(true)}>
+                    <DropdownMenuItem onClick={() => {
+                      setShowDeleteAlert(true);
+                      setOpen(false);
+                    }}>
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete Review
                     </DropdownMenuItem>
                   </>
                 ) : (
-                  <DropdownMenuItem onClick={() => setShowEmailVerification(true)}>
+                  <DropdownMenuItem onClick={() => {
+                    setShowEmailVerification(true);
+                    setOpen(false);
+                  }}>
                     <Mail className="mr-2 h-4 w-4" />
                     Verify Ownership
                   </DropdownMenuItem>
@@ -135,7 +151,7 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
           
           {/* Email Verification Dialog */}
           <Dialog open={showEmailVerification} onOpenChange={setShowEmailVerification}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md bg-white">
               <div className="space-y-4">
                 <h4 className="font-medium text-lg">Verify Review Ownership</h4>
                 <p className="text-sm text-gray-500">
@@ -173,7 +189,7 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
           
           {/* Edit Dialog */}
           <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-            <DialogContent>
+            <DialogContent className="bg-white">
               <EditReviewForm 
                 id={id} 
                 initialQuote={quote}
@@ -185,7 +201,7 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
           
           {/* Delete Confirmation Dialog */}
           <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-            <AlertDialogContent>
+            <AlertDialogContent className="bg-white">
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
