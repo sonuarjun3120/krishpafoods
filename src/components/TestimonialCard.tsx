@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit2, Trash2, MoreHorizontal, Mail } from "lucide-react";
+import { Edit2, Trash2, Mail } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -17,12 +17,6 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface TestimonialProps {
   id: string;
@@ -41,7 +35,6 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationError, setVerificationError] = useState("");
-  const [open, setOpen] = useState(false);
   
   // Check if current user's email matches the testimonial email
   // We'll get the user email from localStorage for now
@@ -103,51 +96,42 @@ const TestimonialCard = ({ id, name, location, quote, user_email, onDelete, onEd
           <h4 className="font-playfair font-semibold text-primary">{name}</h4>
           <p className="text-sm text-gray-500">{location}</p>
           
-          {/* Options Menu - Fixed with proper positioning and styling */}
-          <div className="absolute top-4 right-4 z-50">
-            <DropdownMenu open={open} onOpenChange={setOpen}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 bg-white hover:bg-gray-100">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Open options menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="end" 
-                className="bg-white shadow-md" 
-                sideOffset={5}
-                onCloseAutoFocus={(e) => e.preventDefault()}
-                forceMount
+          {/* Owner Actions */}
+          {isOwner && (
+            <div className="flex gap-2 mt-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowEditDialog(true)}
+                className="flex items-center gap-1"
               >
-                {isOwner ? (
-                  <>
-                    <DropdownMenuItem onClick={() => {
-                      setShowEditDialog(true);
-                      setOpen(false);
-                    }}>
-                      <Edit2 className="mr-2 h-4 w-4" />
-                      Edit Review
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                      setShowDeleteAlert(true);
-                      setOpen(false);
-                    }}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Review
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem onClick={() => {
-                    setShowEmailVerification(true);
-                    setOpen(false);
-                  }}>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Verify Ownership
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                <Edit2 className="h-4 w-4" />
+                Edit
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowDeleteAlert(true)}
+                className="flex items-center gap-1 text-red-500 border-red-500 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
+            </div>
+          )}
+          
+          {/* Verify Ownership Button - Only show if not already verified */}
+          {!isOwner && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowEmailVerification(true)}
+              className="flex items-center gap-1 mt-4"
+            >
+              <Mail className="h-4 w-4" />
+              Verify Ownership
+            </Button>
+          )}
           
           {/* Email Verification Dialog */}
           <Dialog open={showEmailVerification} onOpenChange={setShowEmailVerification}>
