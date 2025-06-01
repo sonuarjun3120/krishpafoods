@@ -6,15 +6,14 @@ import ReviewForm from "@/components/ReviewForm";
 import Categories from "@/components/Categories";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import products from "@/data/products";
 import testimonials, { fetchTestimonials, editTestimonial, deleteTestimonial } from "@/data/testimonials";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { contentService } from "@/services/contentService";
+import { supabaseContentService } from "@/services/supabaseContentService";
 
 const Home = () => {
-  const featuredProducts = products.filter(product => product.featured);
+  const [products, setProducts] = useState<any[]>([]);
   const [refreshTestimonials, setRefreshTestimonials] = useState(0);
   const [showAllTestimonials, setShowAllTestimonials] = useState(false);
   const [homeContent, setHomeContent] = useState<any>(null);
@@ -27,15 +26,20 @@ const Home = () => {
     ? testimonials 
     : testimonials.slice(0, initialTestimonialsCount);
 
-  // Load home page content from admin
+  // Load products and content from Supabase
   useEffect(() => {
-    const pageContent = contentService.getPageContent('home');
-    if (pageContent && pageContent.status === 'published') {
-      try {
-        const parsedContent = contentService.parsePageContent(pageContent.content);
-        setHomeContent(parsedContent);
-      } catch (error) {
-        console.error('Error parsing home content:', error);
+    const loadData = async () => {
+      setIsLoading(true);
+      
+      // Load featured products from Supabase
+      const featuredProducts = await supabaseContentService.getFeaturedProducts();
+      setProducts(featuredProducts);
+      
+      // Load home page content from Supabase
+      const pageContent = await supabaseContentService.getPage('home');
+      if (pageContent) {
+        setHomeContent(pageContent.content);
+      } else {
         // Fallback to default content
         setHomeContent({
           heroTitle: 'A Taste of Tradition in Every Bite!',
@@ -44,15 +48,11 @@ const Home = () => {
           aboutDescription: 'Krishpa Homemade Pickles began in a small kitchen in Vijayawada, where our founder\'s grandmother perfected recipes that have been treasured for generations. Today, we continue this legacy using the same traditional methods, handpicking ingredients, and crafting each batch with care and love.'
         });
       }
-    } else {
-      // Default content if no admin content is found
-      setHomeContent({
-        heroTitle: 'A Taste of Tradition in Every Bite!',
-        heroDescription: 'Authentic Telugu-style pickles made with traditional recipes from Andhra and Telangana. Handcrafted with love and the finest ingredients.',
-        aboutTitle: 'Our Pickle Heritage',
-        aboutDescription: 'Krishpa Homemade Pickles began in a small kitchen in Vijayawada, where our founder\'s grandmother perfected recipes that have been treasured for generations. Today, we continue this legacy using the same traditional methods, handpicking ingredients, and crafting each batch with care and love.'
-      });
-    }
+      
+      setIsLoading(false);
+    };
+    
+    loadData();
   }, []);
   
   // Force re-render of testimonials when a new one is added
@@ -63,9 +63,7 @@ const Home = () => {
   // Fetch testimonials on component mount
   useEffect(() => {
     const loadTestimonials = async () => {
-      setIsLoading(true);
       await fetchTestimonials();
-      setIsLoading(false);
     };
     
     loadTestimonials();
@@ -99,7 +97,7 @@ const Home = () => {
     }
   };
 
-  if (!homeContent) {
+  if (isLoading || !homeContent) {
     return (
       <Layout>
         <div className="flex justify-center items-center py-12">
@@ -183,7 +181,13 @@ const Home = () => {
             Handcrafted in small batches using traditional methods and the finest ingredients
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map(product => <ProductCard key={product.id} {...product} />)}
+            {products.length > 0 ? (
+              products.map(product => <ProductCard key={product.id} {...product} />)
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <p className="text-gray-500">No featured products available at the moment.</p>
+              </div>
+            )}
           </div>
           <div className="text-center mt-10">
             <Link to="/shop">
@@ -205,11 +209,7 @@ const Home = () => {
             We're proud to bring the authentic taste of Telugu cuisine to homes around the world
           </p>
           
-          {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            </div>
-          ) : testimonials.length === 0 ? (
+          {testimonials.length === 0 ? (
             <p className="text-center text-gray-500 py-12">No reviews yet. Be the first to share your experience!</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
