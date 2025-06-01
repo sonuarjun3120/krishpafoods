@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, Eye, Edit, Plus, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { contentService } from '@/services/contentService';
 
 interface PageContent {
   id: string;
@@ -18,51 +19,32 @@ interface PageContent {
   lastModified: string;
 }
 
-const mockPages: PageContent[] = [
-  {
-    id: '1',
-    title: 'Home Page',
-    slug: 'home',
-    content: '<h1>Welcome to Our Spice Store</h1><p>Discover the finest spices from around the world...</p>',
-    status: 'published',
-    lastModified: '2024-01-15'
-  },
-  {
-    id: '2',
-    title: 'About Us',
-    slug: 'about',
-    content: '<h1>About Our Company</h1><p>We have been sourcing premium spices for over 20 years...</p>',
-    status: 'published',
-    lastModified: '2024-01-14'
-  },
-  {
-    id: '3',
-    title: 'Contact',
-    slug: 'contact',
-    content: '<h1>Get in Touch</h1><p>Contact us for any inquiries about our products...</p>',
-    status: 'draft',
-    lastModified: '2024-01-13'
-  },
-];
-
 export const PageContentManagement = () => {
-  const [pages, setPages] = useState<PageContent[]>(mockPages);
-  const [selectedPage, setSelectedPage] = useState<PageContent | null>(pages[0]);
+  const [pages, setPages] = useState<PageContent[]>([]);
+  const [selectedPage, setSelectedPage] = useState<PageContent | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const allPages = contentService.getAllPages();
+    setPages(allPages);
+    if (allPages.length > 0) {
+      setSelectedPage(allPages[0]);
+    }
+  }, []);
+
   const handleSave = () => {
     if (selectedPage) {
-      setPages(pages.map(page =>
-        page.id === selectedPage.id
-          ? { ...selectedPage, lastModified: new Date().toISOString().split('T')[0] }
-          : page
-      ));
-      setIsEditing(false);
-      toast({
-        title: "Page Saved",
-        description: "Page content has been updated successfully",
-      });
+      const success = contentService.updatePageContent(selectedPage.id, selectedPage);
+      if (success) {
+        const updatedPages = contentService.getAllPages();
+        setPages(updatedPages);
+        setIsEditing(false);
+        toast({
+          title: "Page Saved",
+          description: "Page content has been updated successfully. Changes will be visible on the main website.",
+        });
+      }
     }
   };
 
@@ -72,6 +54,23 @@ export const PageContentManagement = () => {
       setSelectedPage(page);
       setIsEditing(false);
     }
+  };
+
+  const handleCreateNewPage = () => {
+    const newPage = contentService.createPage({
+      title: 'New Page',
+      slug: 'new-page',
+      content: JSON.stringify({ title: 'New Page', content: 'Page content goes here...' }),
+      status: 'draft'
+    });
+    const updatedPages = contentService.getAllPages();
+    setPages(updatedPages);
+    setSelectedPage(newPage);
+    setIsEditing(true);
+    toast({
+      title: "New Page Created",
+      description: "New page created successfully",
+    });
   };
 
   const insertImage = () => {
@@ -84,11 +83,47 @@ export const PageContentManagement = () => {
     }
   };
 
+  const renderContentPreview = () => {
+    if (!selectedPage) return null;
+    
+    try {
+      const parsedContent = contentService.parsePageContent(selectedPage.content);
+      
+      if (selectedPage.slug === 'home') {
+        return (
+          <div className="space-y-4">
+            <div className="p-4 border rounded bg-blue-50">
+              <h2 className="text-xl font-bold">{parsedContent.heroTitle}</h2>
+              <p className="text-gray-600">{parsedContent.heroDescription}</p>
+            </div>
+            <div className="p-4 border rounded bg-green-50">
+              <h3 className="text-lg font-semibold">{parsedContent.aboutTitle}</h3>
+              <p className="text-gray-600">{parsedContent.aboutDescription}</p>
+            </div>
+          </div>
+        );
+      }
+      
+      return (
+        <div
+          className="border rounded-md p-4 min-h-[300px] bg-gray-50 dark:bg-gray-900"
+          dangerouslySetInnerHTML={{ __html: typeof parsedContent === 'string' ? parsedContent : parsedContent.content || '' }}
+        />
+      );
+    } catch {
+      return (
+        <div className="border rounded-md p-4 min-h-[300px] bg-gray-50 dark:bg-gray-900">
+          <p>Invalid content format</p>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Page Content Management</h1>
-        <Button>
+        <Button onClick={handleCreateNewPage}>
           <Plus className="h-4 w-4 mr-2" />
           New Page
         </Button>
@@ -197,13 +232,10 @@ export const PageContentManagement = () => {
                       onChange={(e) => setSelectedPage({ ...selectedPage, content: e.target.value })}
                       rows={15}
                       className="font-mono text-sm"
-                      placeholder="Enter HTML content here..."
+                      placeholder="Enter JSON content for structured data or HTML for rich content..."
                     />
                   ) : (
-                    <div
-                      className="border rounded-md p-4 min-h-[300px] bg-gray-50 dark:bg-gray-900"
-                      dangerouslySetInnerHTML={{ __html: selectedPage.content }}
-                    />
+                    renderContentPreview()
                   )}
                 </div>
 

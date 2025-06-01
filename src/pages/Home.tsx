@@ -11,11 +11,13 @@ import testimonials, { fetchTestimonials, editTestimonial, deleteTestimonial } f
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { contentService } from "@/services/contentService";
 
 const Home = () => {
   const featuredProducts = products.filter(product => product.featured);
   const [refreshTestimonials, setRefreshTestimonials] = useState(0);
   const [showAllTestimonials, setShowAllTestimonials] = useState(false);
+  const [homeContent, setHomeContent] = useState<any>(null);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   
@@ -24,6 +26,34 @@ const Home = () => {
   const displayedTestimonials = showAllTestimonials 
     ? testimonials 
     : testimonials.slice(0, initialTestimonialsCount);
+
+  // Load home page content from admin
+  useEffect(() => {
+    const pageContent = contentService.getPageContent('home');
+    if (pageContent && pageContent.status === 'published') {
+      try {
+        const parsedContent = contentService.parsePageContent(pageContent.content);
+        setHomeContent(parsedContent);
+      } catch (error) {
+        console.error('Error parsing home content:', error);
+        // Fallback to default content
+        setHomeContent({
+          heroTitle: 'A Taste of Tradition in Every Bite!',
+          heroDescription: 'Authentic Telugu-style pickles made with traditional recipes from Andhra and Telangana. Handcrafted with love and the finest ingredients.',
+          aboutTitle: 'Our Pickle Heritage',
+          aboutDescription: 'Krishpa Homemade Pickles began in a small kitchen in Vijayawada, where our founder\'s grandmother perfected recipes that have been treasured for generations. Today, we continue this legacy using the same traditional methods, handpicking ingredients, and crafting each batch with care and love.'
+        });
+      }
+    } else {
+      // Default content if no admin content is found
+      setHomeContent({
+        heroTitle: 'A Taste of Tradition in Every Bite!',
+        heroDescription: 'Authentic Telugu-style pickles made with traditional recipes from Andhra and Telangana. Handcrafted with love and the finest ingredients.',
+        aboutTitle: 'Our Pickle Heritage',
+        aboutDescription: 'Krishpa Homemade Pickles began in a small kitchen in Vijayawada, where our founder\'s grandmother perfected recipes that have been treasured for generations. Today, we continue this legacy using the same traditional methods, handpicking ingredients, and crafting each batch with care and love.'
+      });
+    }
+  }, []);
   
   // Force re-render of testimonials when a new one is added
   const handleReviewSubmitted = () => {
@@ -69,17 +99,27 @@ const Home = () => {
     }
   };
 
-  return <Layout>
+  if (!homeContent) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
       {/* Hero Section */}
       <section className="relative bg-amber-50">
         <div className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-10 md:mb-0 md:pr-10">
             <h1 className="font-playfair text-4xl md:text-5xl font-bold text-primary mb-6">
-              A Taste of Tradition in Every Bite!
+              {homeContent.heroTitle}
             </h1>
             <p className="text-gray-700 mb-8 text-lg">
-              Authentic Telugu-style pickles made with traditional recipes from Andhra and Telangana.
-              Handcrafted with love and the finest ingredients.
+              {homeContent.heroDescription}
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/shop">
@@ -119,13 +159,10 @@ const Home = () => {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="font-playfair text-3xl font-bold text-primary mb-6">
-              Our Pickle Heritage
+              {homeContent.aboutTitle}
             </h2>
             <p className="text-gray-700 mb-8">
-              Krishpa Homemade Pickles began in a small kitchen in Vijayawada, where our founder's
-              grandmother perfected recipes that have been treasured for generations. 
-              Today, we continue this legacy using the same traditional methods, handpicking 
-              ingredients, and crafting each batch with care and love.
+              {homeContent.aboutDescription}
             </p>
             <Link to="/about">
               <Button variant="link" className="text-primary">
@@ -230,6 +267,8 @@ const Home = () => {
           </Link>
         </div>
       </section>
-    </Layout>;
+    </Layout>
+  );
 };
+
 export default Home;
