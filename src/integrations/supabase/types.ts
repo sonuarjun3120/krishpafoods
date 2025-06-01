@@ -86,6 +86,51 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          created_at: string
+          description: string
+          featured: boolean | null
+          id: number
+          image: string
+          ingredients: Json
+          longDescription: string
+          name: string
+          pricing: Json
+          servingSuggestions: Json
+          shelfLife: string
+          spiceLevel: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          featured?: boolean | null
+          id?: number
+          image: string
+          ingredients: Json
+          longDescription: string
+          name: string
+          pricing: Json
+          servingSuggestions: Json
+          shelfLife: string
+          spiceLevel: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          featured?: boolean | null
+          id?: number
+          image?: string
+          ingredients?: Json
+          longDescription?: string
+          name?: string
+          pricing?: Json
+          servingSuggestions?: Json
+          shelfLife?: string
+          spiceLevel?: string
+        }
+        Relationships: []
+      }
       testimonials: {
         Row: {
           created_at: string
