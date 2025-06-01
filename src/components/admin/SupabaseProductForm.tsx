@@ -50,7 +50,7 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
         stock: parseInt(formData.stock.toString()),
         ingredients: formData.ingredients ? JSON.parse(formData.ingredients) : null,
         servingSuggestions: formData.servingSuggestions ? JSON.parse(formData.servingSuggestions) : null,
-        pricing: formData.pricing ? JSON.parse(formData.pricing) : null,
+        pricing: formData.pricing ? JSON.parse(formData.pricing) : { '250g': formData.price },
       };
       
       onSave(productData);
