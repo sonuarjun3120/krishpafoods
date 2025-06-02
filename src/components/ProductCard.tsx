@@ -6,21 +6,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/context/CartContext";
-import { Product } from "@/services/supabaseContentService";
+import { type ProductPricing } from "@/data/products";
 
-interface ProductCardProps extends Product {}
+interface ProductCardProps {
+  id: number;
+  name: string;
+  pricing: ProductPricing[];
+  description: string;
+  image: string;
+}
 
-const ProductCard = ({ id, name, pricing, description, image, category }: ProductCardProps) => {
+const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps) => {
   const { toast } = useToast();
   const { addToCart } = useCart();
+  const [selectedWeight, setSelectedWeight] = useState<string>(pricing[0].weight);
   const [isHovered, setIsHovered] = useState(false);
-  
-  // Convert pricing from JSON to array format
-  const pricingArray = pricing ? 
-    Object.entries(pricing).map(([weight, price]) => ({ weight, price: Number(price) })) :
-    [{ weight: "250g", price: 8.99 }];
-  
-  const [selectedWeight, setSelectedWeight] = useState<string>(pricingArray[0].weight);
   
   // Function to get product-specific images
   const getProductImages = (productId: number, mainImage: string) => {
@@ -46,6 +46,36 @@ const ProductCard = ({ id, name, pricing, description, image, category }: Produc
           "https://images.unsplash.com/photo-1438565434616-3ef039228b15"
         );
         break;
+      case 4: // Lemon Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1465379944081-7f47de8d74ac",
+          "https://images.unsplash.com/photo-1441057206919-63d19fac2369"
+        );
+        break;
+      case 5: // Green Chili Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1501286353178-1ec881214838",
+          "https://images.unsplash.com/photo-1469041797191-50ace28483c3"
+        );
+        break;
+      case 6: // Tamarind Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1452378174528-3090a4bba7b2",
+          "https://images.unsplash.com/photo-1487252665478-49b61b47f302"
+        );
+        break;
+      case 7: // Chicken Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1574484284002-952d92456975",
+          "https://images.unsplash.com/photo-1603360946369-dc9bb6258143"
+        );
+        break;
+      case 8: // Boneless Chicken Pickle
+        baseImages.push(
+          "https://images.unsplash.com/photo-1580217729415-08d9fe8d5438",
+          "https://images.unsplash.com/photo-1664288036226-29fd284eb555"
+        );
+        break;
       default:
         // For products without specific images, use generic ones
         baseImages.push(
@@ -58,6 +88,7 @@ const ProductCard = ({ id, name, pricing, description, image, category }: Produc
   };
   
   const images = getProductImages(id, image);
+  
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Image carousel interval that only runs when hovered
@@ -75,7 +106,7 @@ const ProductCard = ({ id, name, pricing, description, image, category }: Produc
     };
   }, [isHovered, images.length]);
 
-  const selectedPricing = pricingArray.find(p => p.weight === selectedWeight) || pricingArray[0];
+  const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0];
 
   const handleAddToCart = () => {
     addToCart({ 
@@ -132,7 +163,7 @@ const ProductCard = ({ id, name, pricing, description, image, category }: Produc
                 <SelectValue placeholder="Select weight" />
               </SelectTrigger>
               <SelectContent>
-                {pricingArray.map((price) => (
+                {pricing.map((price) => (
                   <SelectItem key={price.weight} value={price.weight}>
                     {price.weight} - ₹{price.price}
                   </SelectItem>

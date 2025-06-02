@@ -1,20 +1,19 @@
 
 import Layout from "@/components/Layout";
 import ProductCard from "@/components/ProductCard";
+import products from "@/data/products";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { useSupabaseProductsPublic } from "@/hooks/useSupabaseProductsPublic";
 
 const Shop = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const location = useLocation();
   const navigate = useNavigate();
-  const { products, loading } = useSupabaseProductsPublic();
   
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -36,18 +35,6 @@ const Shop = () => {
   const handleGoBack = () => {
     navigate(-1);
   };
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -88,10 +75,9 @@ const Shop = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Vegetable Pickles">Vegetable Pickles</SelectItem>
-                  <SelectItem value="Fruit Pickles">Fruit Pickles</SelectItem>
-                  <SelectItem value="Citrus Pickles">Citrus Pickles</SelectItem>
-                  <SelectItem value="Spice Blends">Spice Blends</SelectItem>
+                  <SelectItem value="veg">Vegetarian</SelectItem>
+                  <SelectItem value="nonveg">Non-Vegetarian</SelectItem>
+                  <SelectItem value="combo">Combo Packs</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -1,40 +1,32 @@
 
 import { Link } from "react-router-dom";
-import { LucideSalad, Cherry, Citrus, Spice } from "lucide-react";
+import { LucideSalad, Beef, Fish } from "lucide-react";
 
 const Categories = () => {
   const categories = [
     {
       id: 1,
-      name: "Vegetable Pickles",
-      description: "Traditional vegetable pickles made with fresh vegetables and authentic spices",
+      name: "Vegetarian Pickles",
+      description: "Traditional vegetarian pickles made with fresh vegetables and spices",
       image: "https://images.unsplash.com/photo-1589216532372-1c2a367900d9",
       icon: <LucideSalad className="w-6 h-6" />,
-      link: "/shop?category=Vegetable+Pickles"
+      link: "/shop?category=veg"
     },
     {
       id: 2,
-      name: "Fruit Pickles",
-      description: "Sweet and tangy fruit pickles bursting with traditional flavors",
+      name: "Non-Vegetarian",
+      description: "Premium meat and seafood-based pickles including chicken, mutton, fish and prawns",
       image: "https://images.unsplash.com/photo-1574484284002-952d92456975",
-      icon: <Cherry className="w-6 h-6" />,
-      link: "/shop?category=Fruit+Pickles"
+      icon: <Beef className="w-6 h-6" />,
+      link: "/shop?category=nonveg"
     },
     {
       id: 3,
-      name: "Citrus Pickles",
-      description: "Zesty citrus pickles with authentic Telugu taste",
+      name: "Combo Packs",
+      description: "Special combination packs of our best-selling pickles",
       image: "https://images.unsplash.com/photo-1567606855340-df87e6a35b5e",
-      icon: <Citrus className="w-6 h-6" />,
-      link: "/shop?category=Citrus+Pickles"
-    },
-    {
-      id: 4,
-      name: "Spice Blends",
-      description: "Aromatic spice blends and masala powders for authentic cooking",
-      image: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d",
-      icon: <Spice className="w-6 h-6" />,
-      link: "/shop?category=Spice+Blends"
+      icon: <Fish className="w-6 h-6" />,
+      link: "/shop?category=combo"
     }
   ];
 
@@ -58,12 +50,12 @@ const Categories = () => {
         </div>
       </Link>
 
-      <div className="grid grid-cols-1 gap-6 h-[400px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 h-[400px]">
         {categories.slice(1).map((category) => (
           <Link
             key={category.id}
             to={category.link}
-            className="relative overflow-hidden rounded-2xl group transition-transform hover:scale-[1.02] duration-300 h-[125px]"
+            className="relative overflow-hidden rounded-2xl group transition-transform hover:scale-[1.02] duration-300"
           >
             <img
               src={category.image}
@@ -73,7 +65,7 @@ const Categories = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex flex-col justify-end p-4">
               <div className="flex items-center gap-2 text-white mb-1">
                 {category.icon}
-                <h3 className="text-lg font-playfair font-bold">{category.name}</h3>
+                <h3 className="text-xl font-playfair font-bold">{category.name}</h3>
               </div>
               <p className="text-white/90 text-sm">{category.description}</p>
             </div>
