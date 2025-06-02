@@ -29,11 +29,13 @@ const ProductDetail = () => {
         const productData = await getProduct(Number(id));
         setProduct(productData);
         
-        // Get related products
-        const related = products
-          .filter(p => p.id !== Number(id) && p.category === productData?.category)
-          .slice(0, 4);
-        setRelatedProducts(related);
+        // Get related products - filter out current product and same category
+        if (productData) {
+          const related = products
+            .filter(p => p.id !== Number(id) && p.category === productData.category)
+            .slice(0, 4);
+          setRelatedProducts(related);
+        }
         
         setLoading(false);
       }
