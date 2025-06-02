@@ -119,7 +119,7 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">Category *</Label>
               <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
@@ -129,6 +129,7 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
                   <SelectItem value="Fruit Pickles">Fruit Pickles</SelectItem>
                   <SelectItem value="Citrus Pickles">Citrus Pickles</SelectItem>
                   <SelectItem value="Spice Blends">Spice Blends</SelectItem>
+                  <SelectItem value="Traditional Pickles">Traditional Pickles</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -139,7 +140,7 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
                 id="stock"
                 type="number"
                 value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                 placeholder="Available quantity"
               />
             </div>
@@ -223,6 +224,20 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
               onCheckedChange={(checked) => setFormData({ ...formData, featured: !!checked })}
             />
             <Label htmlFor="featured">Featured Product (Display on homepage)</Label>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Product Status</Label>
+            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         
