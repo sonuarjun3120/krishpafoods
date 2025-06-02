@@ -1,170 +1,51 @@
 
 import Layout from "@/components/Layout";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Star, Users, Award, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 import ProductCard from "@/components/ProductCard";
 import TestimonialCard from "@/components/TestimonialCard";
-import ReviewForm from "@/components/ReviewForm";
-import Categories from "@/components/Categories";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import testimonials, { fetchTestimonials, editTestimonial, deleteTestimonial } from "@/data/testimonials";
+import testimonials from "@/data/testimonials";
+import { useSupabaseProductsPublic } from "@/hooks/useSupabaseProductsPublic";
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { supabaseContentService } from "@/services/supabaseContentService";
+import { Product } from "@/services/supabaseContentService";
 
 const Home = () => {
-  const [products, setProducts] = useState<any[]>([]);
-  const [refreshTestimonials, setRefreshTestimonials] = useState(0);
-  const [showAllTestimonials, setShowAllTestimonials] = useState(false);
-  const [homeContent, setHomeContent] = useState<any>(null);
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Initially show only 4 testimonials
-  const initialTestimonialsCount = 4;
-  const displayedTestimonials = showAllTestimonials 
-    ? testimonials 
-    : testimonials.slice(0, initialTestimonialsCount);
+  const { getFeaturedProducts } = useSupabaseProductsPublic();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load products and content from Supabase
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      
-      // Load featured products from Supabase
-      const featuredProducts = await supabaseContentService.getFeaturedProducts();
-      setProducts(featuredProducts);
-      
-      // Load home page content from Supabase
-      const pageContent = await supabaseContentService.getPage('home');
-      if (pageContent) {
-        setHomeContent(pageContent.content);
-      } else {
-        // Fallback to default content
-        setHomeContent({
-          heroTitle: 'A Taste of Tradition in Every Bite!',
-          heroDescription: 'Authentic Telugu-style pickles made with traditional recipes from Andhra and Telangana. Handcrafted with love and the finest ingredients.',
-          aboutTitle: 'Our Pickle Heritage',
-          aboutDescription: 'Krishpa Homemade Pickles began in a small kitchen in Vijayawada, where our founder\'s grandmother perfected recipes that have been treasured for generations. Today, we continue this legacy using the same traditional methods, handpicking ingredients, and crafting each batch with care and love.'
-        });
-      }
-      
-      setIsLoading(false);
+    const loadFeaturedProducts = async () => {
+      setLoading(true);
+      const products = await getFeaturedProducts();
+      setFeaturedProducts(products.slice(0, 3)); // Show only 3 featured products
+      setLoading(false);
     };
-    
-    loadData();
-  }, []);
-  
-  // Force re-render of testimonials when a new one is added
-  const handleReviewSubmitted = () => {
-    setRefreshTestimonials(prev => prev + 1);
-  };
-  
-  // Fetch testimonials on component mount
-  useEffect(() => {
-    const loadTestimonials = async () => {
-      await fetchTestimonials();
-    };
-    
-    loadTestimonials();
-  }, [refreshTestimonials]);
-  
-  // Handle testimonial edit
-  const handleEditTestimonial = async (id: string, quote: string) => {
-    const success = await editTestimonial(id, quote);
-    if (success) {
-      setRefreshTestimonials(prev => prev + 1);
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to update your review. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-  
-  // Handle testimonial delete
-  const handleDeleteTestimonial = async (id: string) => {
-    const success = await deleteTestimonial(id);
-    if (success) {
-      setRefreshTestimonials(prev => prev + 1);
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to delete your review. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (isLoading || !homeContent) {
-    return (
-      <Layout>
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </Layout>
-    );
-  }
+    loadFeaturedProducts();
+  }, [getFeaturedProducts]);
 
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative bg-amber-50">
-        <div className="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
-          <div className="md:w-1/2 mb-10 md:mb-0 md:pr-10">
-            <h1 className="font-playfair text-4xl md:text-5xl font-bold text-primary mb-6">
-              {homeContent.heroTitle}
-            </h1>
-            <p className="text-gray-700 mb-8 text-lg">
-              {homeContent.heroDescription}
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link to="/shop">
-                <Button className="bg-primary hover:bg-primary/90 text-white py-2 px-6">
-                  Explore Our Pickles
-                </Button>
-              </Link>
-              <Link to="/about">
-                <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
-                  Learn Our Story
-                </Button>
-              </Link>
-            </div>
-          </div>
-          <div className="md:w-1/2">
-            <img src="https://images.unsplash.com/photo-1589216532372-1c2a367900d9" alt="Assorted pickles in jars" className="rounded-lg shadow-lg w-full h-auto object-cover" />
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-amber-50/80 to-transparent"></div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="font-playfair text-3xl font-bold text-primary mb-2 text-center">
-            Browse by Category
-          </h2>
-          <p className="text-gray-700 mb-10 text-center max-w-2xl mx-auto">
-            Explore our diverse collection of handcrafted pickles
+      <section className="bg-gradient-to-br from-orange-50 to-yellow-50 py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="font-playfair text-5xl md:text-6xl font-bold text-primary mb-6 animate-fade-in">
+            A Taste of Tradition in Every Bite!
+          </h1>
+          <p className="text-lg md:text-xl text-gray-700 mb-8 max-w-3xl mx-auto animate-fade-in">
+            Authentic Telugu-style pickles made with traditional recipes from Andhra and Telangana. 
+            Handcrafted with love and the finest ingredients.
           </p>
-          <Categories />
-        </div>
-      </section>
-
-      {/* About Brief Section */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto">
-            <h2 className="font-playfair text-3xl font-bold text-primary mb-6">
-              {homeContent.aboutTitle}
-            </h2>
-            <p className="text-gray-700 mb-8">
-              {homeContent.aboutDescription}
-            </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
+            <Link to="/shop">
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 text-lg">
+                Shop Our Pickles <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Link to="/about">
-              <Button variant="link" className="text-primary">
-                Read Our Full Story →
+              <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-white px-8 py-3 text-lg">
+                Our Story
               </Button>
             </Link>
           </div>
@@ -172,99 +53,163 @@ const Home = () => {
       </section>
 
       {/* Featured Products Section */}
-      <section className="bg-amber-50 py-16">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="font-playfair text-3xl font-bold text-primary mb-2 text-center">
-            Our Signature Pickles
-          </h2>
-          <p className="text-gray-700 mb-10 text-center max-w-2xl mx-auto">
-            Handcrafted in small batches using traditional methods and the finest ingredients
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.length > 0 ? (
-              products.map(product => <ProductCard key={product.id} {...product} />)
-            ) : (
-              <div className="col-span-full text-center py-8">
-                <p className="text-gray-500">No featured products available at the moment.</p>
-              </div>
-            )}
+          <div className="text-center mb-12">
+            <h2 className="font-playfair text-3xl md:text-4xl font-bold text-primary mb-4">
+              Featured Pickles
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Discover our most popular traditional pickles, each crafted with authentic recipes passed down through generations.
+            </p>
           </div>
-          <div className="text-center mt-10">
+          
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} {...product} />
+              ))}
+            </div>
+          )}
+          
+          <div className="text-center">
             <Link to="/shop">
-              <Button className="bg-primary hover:bg-primary/90 transition-all duration-300 transform hover:scale-105">
-                View All Products
+              <Button className="bg-[#8b4513] hover:bg-[#8b4513]/90 transition-all duration-300 transform hover:scale-105">
+                View All Products <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="bg-white py-16">
+      {/* About Section */}
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="font-playfair text-3xl font-bold text-primary mb-2 text-center">
-            What Our Customers Say
-          </h2>
-          <p className="text-gray-700 mb-10 text-center max-w-2xl mx-auto">
-            We're proud to bring the authentic taste of Telugu cuisine to homes around the world
-          </p>
-          
-          {testimonials.length === 0 ? (
-            <p className="text-center text-gray-500 py-12">No reviews yet. Be the first to share your experience!</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {displayedTestimonials.map(testimonial => (
-                <TestimonialCard 
-                  key={`${testimonial.id}-${refreshTestimonials}`} 
-                  {...testimonial}
-                  onEdit={handleEditTestimonial}
-                  onDelete={handleDeleteTestimonial}
-                />
-              ))}
-            </div>
-          )}
-          
-          {testimonials.length > initialTestimonialsCount && (
-            <div className="mt-8 text-center">
-              <Button 
-                variant="outline" 
-                className="border-primary text-primary hover:bg-primary/10"
-                onClick={() => setShowAllTestimonials(!showAllTestimonials)}
-              >
-                {showAllTestimonials ? "Show Less" : "More Reviews"}
-              </Button>
-            </div>
-          )}
-          
-          <div className="mt-16 max-w-3xl mx-auto text-center">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90">
-                  Share Your Review
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="animate-fade-in">
+              <h2 className="font-playfair text-3xl md:text-4xl font-bold text-primary mb-6">
+                Our Pickle Heritage
+              </h2>
+              <p className="text-gray-700 mb-6 leading-relaxed">
+                Krishpa Homemade Pickles began in a small kitchen in Vijayawada, where our founder's grandmother 
+                perfected recipes that have been treasured for generations. Today, we continue this legacy using 
+                the same traditional methods, handpicking ingredients, and crafting each batch with care and love.
+              </p>
+              <p className="text-gray-700 mb-8 leading-relaxed">
+                Every jar tells a story of tradition, authenticity, and the rich culinary heritage of Telugu cuisine. 
+                We source the finest ingredients and use time-honored techniques to ensure each pickle captures 
+                the authentic flavors of Andhra and Telangana.
+              </p>
+              <Link to="/about">
+                <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                  Learn More About Us
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <ReviewForm onReviewSubmitted={handleReviewSubmitted} />
-              </DialogContent>
-            </Dialog>
+              </Link>
+            </div>
+            <div className="animate-fade-in">
+              <img 
+                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136" 
+                alt="Traditional pickle making" 
+                className="rounded-lg shadow-lg w-full h-auto"
+              />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="text-white py-16 animate-fade-in bg-transparent">
+      {/* Why Choose Us Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="font-playfair text-3xl md:text-4xl font-bold text-primary mb-4">
+              Why Choose Krishpa?
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              We're committed to bringing you the most authentic and delicious pickles with traditional recipes and modern quality standards.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center animate-fade-in">
+              <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Authentic Recipes</h3>
+              <p className="text-gray-600 text-sm">Traditional family recipes passed down through generations</p>
+            </div>
+            
+            <div className="text-center animate-fade-in">
+              <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Family Business</h3>
+              <p className="text-gray-600 text-sm">A trusted family business serving customers with love and care</p>
+            </div>
+            
+            <div className="text-center animate-fade-in">
+              <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Premium Quality</h3>
+              <p className="text-gray-600 text-sm">Only the finest ingredients sourced from trusted suppliers</p>
+            </div>
+            
+            <div className="text-center animate-fade-in">
+              <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Heart className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">Made with Love</h3>
+              <p className="text-gray-600 text-sm">Each jar is handcrafted with attention to detail and care</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="font-playfair text-3xl md:text-4xl font-bold text-primary mb-4">
+              What Our Customers Say
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Don't just take our word for it. Here's what our valued customers have to say about our pickles.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.slice(0, 3).map((testimonial) => (
+              <TestimonialCard key={testimonial.id} {...testimonial} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 bg-primary text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="font-playfair text-3xl font-bold mb-6 text-secondary-foreground">
-            Bring Home the Taste of Tradition
+          <h2 className="font-playfair text-3xl md:text-4xl font-bold mb-4">
+            Ready to Taste Tradition?
           </h2>
-          <p className="mb-8 max-w-2xl mx-auto text-secondary-foreground">
-            From our family's kitchen to your table - experience the authentic flavors of Telugu cuisine with Krishpa Homemade Pickles.
+          <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
+            Order your favorite pickles today and experience the authentic flavors of Telugu cuisine delivered to your doorstep.
           </p>
-          <Link to="/shop">
-            <Button className="text-white py-2 px-8 text-lg transition-all duration-300 hover:scale-105 bg-[#8b4513]">
-              Shop Now
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/shop">
+              <Button size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-100 px-8 py-3 text-lg">
+                Shop Now <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+            <Link to="/contact">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary px-8 py-3 text-lg">
+                Contact Us
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
     </Layout>

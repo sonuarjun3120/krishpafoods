@@ -1,23 +1,57 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
 import Layout from "@/components/Layout";
-import products from "@/data/products";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
 import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductDetails from "@/components/product/ProductDetails";
 import RelatedProducts from "@/components/product/RelatedProducts";
+import { useSupabaseProductsPublic } from "@/hooks/useSupabaseProductsPublic";
+import { Product } from "@/services/supabaseContentService";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [selectedWeight, setSelectedWeight] = useState<string>("");
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { products, getProduct } = useSupabaseProductsPublic();
   
-  const product = products.find(p => p.id === Number(id));
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (id) {
+        setLoading(true);
+        const productData = await getProduct(Number(id));
+        setProduct(productData);
+        
+        // Get related products
+        const related = products
+          .filter(p => p.id !== Number(id) && p.category === productData?.category)
+          .slice(0, 4);
+        setRelatedProducts(related);
+        
+        setLoading(false);
+      }
+    };
+    
+    fetchProduct();
+  }, [id, getProduct, products]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4">Loading product...</p>
+        </div>
+      </Layout>
+    );
+  }
   
   if (!product) {
     return (
@@ -30,11 +64,16 @@ const ProductDetail = () => {
     );
   }
 
-  if (!selectedWeight && product.pricing.length > 0) {
-    setSelectedWeight(product.pricing[0].weight);
+  // Convert pricing from JSON to array format expected by components
+  const pricingArray = product.pricing ? 
+    Object.entries(product.pricing).map(([weight, price]) => ({ weight, price: Number(price) })) :
+    [{ weight: "250g", price: product.price }];
+
+  if (!selectedWeight && pricingArray.length > 0) {
+    setSelectedWeight(pricingArray[0].weight);
   }
 
-  const selectedPricing = product.pricing.find(p => p.weight === selectedWeight) || product.pricing[0];
+  const selectedPricing = pricingArray.find(p => p.weight === selectedWeight) || pricingArray[0];
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -53,28 +92,24 @@ const ProductDetail = () => {
     });
   };
 
-  const relatedProducts = products
-    .filter(p => p.id !== product.id)
-    .slice(0, 4);
-
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <ProductBreadcrumb category={product.category} productName={product.name} />
+        <ProductBreadcrumb category={product.category || ''} productName={product.name} />
 
         <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden">
           <ProductGallery image={product.image} name={product.name} productId={product.id} />
           <ProductDetails
             name={product.name}
-            pricing={product.pricing}
+            pricing={pricingArray}
             selectedWeight={selectedWeight}
             setSelectedWeight={setSelectedWeight}
             selectedPricing={selectedPricing}
-            longDescription={product.longDescription}
+            longDescription={product.longDescription || product.description}
             spiceLevel={product.spiceLevel}
-            ingredients={product.ingredients}
+            ingredients={product.ingredients || []}
             shelfLife={product.shelfLife}
-            servingSuggestions={product.servingSuggestions}
+            servingSuggestions={product.servingSuggestions || []}
             quantity={quantity}
             setQuantity={setQuantity}
             onAddToCart={handleAddToCart}
