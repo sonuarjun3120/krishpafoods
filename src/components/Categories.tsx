@@ -1,32 +1,32 @@
 
 import { Link } from "react-router-dom";
-import { LucideSalad, Beef, Fish } from "lucide-react";
+import { Salad, Beef, Package } from "lucide-react";
 
 const Categories = () => {
   const categories = [
     {
       id: 1,
-      name: "Vegetarian Pickles",
-      description: "Traditional vegetarian pickles made with fresh vegetables and spices",
+      name: "Vegetable Pickles",
+      description: "Traditional vegetable pickles made with fresh vegetables and spices",
       image: "https://images.unsplash.com/photo-1589216532372-1c2a367900d9",
-      icon: <LucideSalad className="w-6 h-6" />,
-      link: "/shop?category=veg"
+      icon: <Salad className="w-6 h-6" />,
+      link: "/shop?category=Vegetable Pickles"
     },
     {
       id: 2,
-      name: "Non-Vegetarian",
-      description: "Premium meat and seafood-based pickles including chicken, mutton, fish and prawns",
+      name: "Fruit Pickles",
+      description: "Sweet and tangy fruit pickles including mango, lemon and tamarind varieties",
       image: "https://images.unsplash.com/photo-1574484284002-952d92456975",
       icon: <Beef className="w-6 h-6" />,
-      link: "/shop?category=nonveg"
+      link: "/shop?category=Fruit Pickles"
     },
     {
       id: 3,
-      name: "Combo Packs",
-      description: "Special combination packs of our best-selling pickles",
+      name: "Spice Blends",
+      description: "Aromatic spice blends and masala powders for authentic flavors",
       image: "https://images.unsplash.com/photo-1567606855340-df87e6a35b5e",
-      icon: <Fish className="w-6 h-6" />,
-      link: "/shop?category=combo"
+      icon: <Package className="w-6 h-6" />,
+      link: "/shop?category=Spice Blends"
     }
   ];
 

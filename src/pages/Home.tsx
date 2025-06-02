@@ -1,6 +1,6 @@
 
 import Layout from "@/components/Layout";
-import ProductCard from "@/components/ProductCard";
+import SupabaseProductCard from "@/components/SupabaseProductCard";
 import TestimonialCard from "@/components/TestimonialCard";
 import ReviewForm from "@/components/ReviewForm";
 import Categories from "@/components/Categories";
@@ -10,10 +10,10 @@ import testimonials, { fetchTestimonials, editTestimonial, deleteTestimonial } f
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { supabaseContentService } from "@/services/supabaseContentService";
+import { supabaseContentService, Product } from "@/services/supabaseContentService";
 
 const Home = () => {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [refreshTestimonials, setRefreshTestimonials] = useState(0);
   const [showAllTestimonials, setShowAllTestimonials] = useState(false);
   const [homeContent, setHomeContent] = useState<any>(null);
@@ -33,6 +33,7 @@ const Home = () => {
       
       // Load featured products from Supabase
       const featuredProducts = await supabaseContentService.getFeaturedProducts();
+      console.log('Featured products:', featuredProducts);
       setProducts(featuredProducts);
       
       // Load home page content from Supabase
@@ -182,10 +183,13 @@ const Home = () => {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {products.length > 0 ? (
-              products.map(product => <ProductCard key={product.id} {...product} />)
+              products.map(product => (
+                <SupabaseProductCard key={product.id} product={product} />
+              ))
             ) : (
               <div className="col-span-full text-center py-8">
-                <p className="text-gray-500">No featured products available at the moment.</p>
+                <p className="text-gray-500 mb-4">No featured products available at the moment.</p>
+                <p className="text-sm text-gray-400">Add products in the admin panel and mark them as featured to display them here.</p>
               </div>
             )}
           </div>
