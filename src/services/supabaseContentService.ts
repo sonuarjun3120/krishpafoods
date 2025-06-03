@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Product {
@@ -121,15 +122,28 @@ export const supabaseContentService = {
   },
 
   async createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product | null> {
-    // Convert simple price to pricing object if price is provided
-    let pricing = product.pricing;
-    if (product.price && !pricing) {
-      pricing = {
-        "250g": product.price,
-        "500g": Math.round(product.price * 1.8),
-        "1kg": Math.round(product.price * 3.5)
-      };
-    }
+    // Create pricing object from simple price
+    const pricing = product.price ? {
+      "250g": product.price,
+      "500g": Math.round(product.price * 1.8),
+      "1kg": Math.round(product.price * 3.5)
+    } : {};
+
+    console.log('Creating product with data:', {
+      name: product.name,
+      description: product.description,
+      longDescription: product.longDescription || '',
+      image: product.image,
+      category: product.category || '',
+      featured: product.featured || false,
+      spiceLevel: product.spiceLevel || 'Medium',
+      shelfLife: product.shelfLife || '',
+      ingredients: product.ingredients || [],
+      servingSuggestions: product.servingSuggestions || [],
+      pricing: pricing,
+      stock: product.stock || 0,
+      status: product.status || 'active'
+    });
 
     const { data, error } = await supabase
       .from('products')
@@ -144,7 +158,7 @@ export const supabaseContentService = {
         shelfLife: product.shelfLife || '',
         ingredients: product.ingredients || [],
         servingSuggestions: product.servingSuggestions || [],
-        pricing: pricing || {},
+        pricing: pricing,
         stock: product.stock || 0,
         status: product.status || 'active'
       }])
@@ -153,26 +167,25 @@ export const supabaseContentService = {
     
     if (error) {
       console.error('Error creating product:', error);
-      return null;
+      throw error;
     }
     return data;
   },
 
   async updateProduct(id: number, updates: Partial<Product>): Promise<boolean> {
-    // Convert simple price to pricing object if price is provided
-    let pricing = updates.pricing;
-    if (updates.price && !pricing) {
-      pricing = {
+    // Create pricing object from simple price if provided
+    let updateData = { ...updates };
+    if (updates.price && !updates.pricing) {
+      updateData.pricing = {
         "250g": updates.price,
         "500g": Math.round(updates.price * 1.8),
         "1kg": Math.round(updates.price * 3.5)
       };
-      updates.pricing = pricing;
     }
 
     const { error } = await supabase
       .from('products')
-      .update(updates)
+      .update(updateData)
       .eq('id', id);
     
     if (error) {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,10 +27,9 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
     shelfLife: product?.shelfLife || '',
     status: product?.status || 'active',
     stock: product?.stock || 0,
-    price: 0, // Simple price field
+    price: 0,
     ingredients: product?.ingredients ? (Array.isArray(product.ingredients) ? product.ingredients.join(', ') : '') : '',
     servingSuggestions: product?.servingSuggestions ? (Array.isArray(product.servingSuggestions) ? product.servingSuggestions.join(', ') : '') : '',
-    pricing: product?.pricing ? JSON.stringify(product.pricing) : '{"250g": 299, "500g": 549, "1kg": 999}',
   });
 
   // Extract price from pricing for editing
@@ -47,6 +45,7 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validation
     if (!formData.name.trim()) {
       alert('Product name is required');
       return;
@@ -68,27 +67,28 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
     }
 
     if (formData.price <= 0) {
-      alert('Please enter a valid price');
+      alert('Please enter a valid price greater than 0');
       return;
     }
 
     try {
       const productData: Partial<Product> = {
-        name: formData.name,
-        description: formData.description,
-        longDescription: formData.longDescription,
-        image: formData.image,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        longDescription: formData.longDescription.trim(),
+        image: formData.image.trim(),
         category: formData.category,
         featured: formData.featured,
         spiceLevel: formData.spiceLevel,
-        shelfLife: formData.shelfLife,
+        shelfLife: formData.shelfLife.trim(),
         status: formData.status,
-        stock: parseInt(formData.stock.toString()),
-        price: formData.price, // Use simple price
-        ingredients: formData.ingredients ? formData.ingredients.split(',').map(item => item.trim()) : [],
-        servingSuggestions: formData.servingSuggestions ? formData.servingSuggestions.split(',').map(item => item.trim()) : [],
+        stock: parseInt(formData.stock.toString()) || 0,
+        price: formData.price,
+        ingredients: formData.ingredients ? formData.ingredients.split(',').map(item => item.trim()).filter(item => item) : [],
+        servingSuggestions: formData.servingSuggestions ? formData.servingSuggestions.split(',').map(item => item.trim()).filter(item => item) : [],
       };
       
+      console.log('Submitting product data:', productData);
       onSave(productData);
     } catch (error) {
       console.error('Error preparing product data:', error);
@@ -109,20 +109,25 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
+              placeholder="Enter product name"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="price">Price (₹) *</Label>
+            <Label htmlFor="price">Base Price (₹) *</Label>
             <Input
               id="price"
               type="number"
               step="0.01"
-              min="0"
+              min="0.01"
               value={formData.price}
               onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
               required
+              placeholder="Enter base price for 250g"
             />
+            <p className="text-xs text-gray-500">
+              This will create pricing for 250g, 500g (1.8x), and 1kg (3.5x)
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -152,8 +157,10 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
             <Input
               id="stock"
               type="number"
+              min="0"
               value={formData.stock}
               onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+              placeholder="Enter stock quantity"
             />
           </div>
         </div>
