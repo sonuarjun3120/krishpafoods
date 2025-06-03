@@ -19,7 +19,6 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
     name: product?.name || '',
     description: product?.description || '',
     longDescription: product?.longDescription || '',
-    price: product?.price || 0,
     image: product?.image || '',
     category: product?.category || '',
     featured: product?.featured || false,
@@ -40,7 +39,6 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
         name: formData.name,
         description: formData.description,
         longDescription: formData.longDescription,
-        price: parseFloat(formData.price.toString()),
         image: formData.image,
         category: formData.category,
         featured: formData.featured,
@@ -72,18 +70,6 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="price">Base Price (₹) *</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
               required
             />
           </div>

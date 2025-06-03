@@ -66,7 +66,21 @@ export const supabaseContentService = {
   async createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product | null> {
     const { data, error } = await supabase
       .from('products')
-      .insert([product])
+      .insert([{
+        name: product.name,
+        description: product.description,
+        longDescription: product.longDescription || '',
+        image: product.image,
+        category: product.category || '',
+        featured: product.featured || false,
+        spiceLevel: product.spiceLevel || 'Medium',
+        shelfLife: product.shelfLife || '',
+        ingredients: product.ingredients || [],
+        servingSuggestions: product.servingSuggestions || [],
+        pricing: product.pricing || {},
+        stock: product.stock || 0,
+        status: product.status || 'active'
+      }])
       .select()
       .single();
     

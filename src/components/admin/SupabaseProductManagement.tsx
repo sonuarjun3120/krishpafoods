@@ -51,6 +51,22 @@ export const SupabaseProductManagement = () => {
     }
   };
 
+  // Helper function to get base price from pricing
+  const getBasePrice = (pricing: any) => {
+    if (!pricing) return 'N/A';
+    
+    if (typeof pricing === 'object' && !Array.isArray(pricing)) {
+      const prices = Object.values(pricing);
+      return prices.length > 0 ? `₹${prices[0]}` : 'N/A';
+    }
+    
+    if (Array.isArray(pricing) && pricing.length > 0) {
+      return `₹${pricing[0].price}`;
+    }
+    
+    return 'N/A';
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -117,7 +133,7 @@ export const SupabaseProductManagement = () => {
                     </div>
                   </TableCell>
                   <TableCell>{product.category || 'Uncategorized'}</TableCell>
-                  <TableCell>${product.price}</TableCell>
+                  <TableCell>{getBasePrice(product.pricing)}</TableCell>
                   <TableCell>
                     <Badge variant={product.featured ? 'default' : 'secondary'}>
                       {product.featured ? 'Yes' : 'No'}

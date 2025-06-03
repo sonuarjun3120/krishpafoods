@@ -20,7 +20,7 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
   
   // Parse pricing data - it could be stored as JSON or object
   const getPricing = () => {
-    if (!product.pricing) return [{ weight: "250g", price: product.price }];
+    if (!product.pricing) return [{ weight: "250g", price: 299 }];
     
     if (typeof product.pricing === 'object' && !Array.isArray(product.pricing)) {
       // Convert object format to array format
@@ -35,7 +35,7 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
     }
     
     // Fallback to single price
-    return [{ weight: "250g", price: product.price }];
+    return [{ weight: "250g", price: 299 }];
   };
 
   const pricing = getPricing();

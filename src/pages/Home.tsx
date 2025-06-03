@@ -1,4 +1,3 @@
-
 import Layout from "@/components/Layout";
 import SupabaseProductCard from "@/components/SupabaseProductCard";
 import TestimonialCard from "@/components/TestimonialCard";
@@ -11,6 +10,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabaseContentService, Product } from "@/services/supabaseContentService";
+import { contentService } from "@/services/contentService";
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -26,7 +26,7 @@ const Home = () => {
     ? testimonials 
     : testimonials.slice(0, initialTestimonialsCount);
 
-  // Load products and content from Supabase
+  // Load products and content
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -36,10 +36,11 @@ const Home = () => {
       console.log('Featured products:', featuredProducts);
       setProducts(featuredProducts);
       
-      // Load home page content from Supabase
-      const pageContent = await supabaseContentService.getPage('home');
+      // Load home page content from contentService (fallback)
+      const pageContent = contentService.getPageContent('home');
       if (pageContent) {
-        setHomeContent(pageContent.content);
+        const parsedContent = contentService.parsePageContent(pageContent.content);
+        setHomeContent(parsedContent);
       } else {
         // Fallback to default content
         setHomeContent({
