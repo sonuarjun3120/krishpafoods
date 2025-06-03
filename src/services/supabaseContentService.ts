@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Product {
@@ -14,8 +13,19 @@ export interface Product {
   ingredients?: any;
   servingSuggestions?: any;
   pricing?: any;
+  price?: number; // Add simple price field
   stock?: number;
   status?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  image?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -40,6 +50,34 @@ export interface OTPVerification {
 }
 
 export const supabaseContentService = {
+  // Categories
+  async getCategories(): Promise<Category[]> {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching categories:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  async createCategory(category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<Category | null> {
+    const { data, error } = await supabase
+      .from('categories')
+      .insert([category])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating category:', error);
+      return null;
+    }
+    return data;
+  },
+
   // Products
   async getProducts(): Promise<Product[]> {
     const { data, error } = await supabase
@@ -83,6 +121,16 @@ export const supabaseContentService = {
   },
 
   async createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product | null> {
+    // Convert simple price to pricing object if price is provided
+    let pricing = product.pricing;
+    if (product.price && !pricing) {
+      pricing = {
+        "250g": product.price,
+        "500g": Math.round(product.price * 1.8),
+        "1kg": Math.round(product.price * 3.5)
+      };
+    }
+
     const { data, error } = await supabase
       .from('products')
       .insert([{
@@ -96,7 +144,7 @@ export const supabaseContentService = {
         shelfLife: product.shelfLife || '',
         ingredients: product.ingredients || [],
         servingSuggestions: product.servingSuggestions || [],
-        pricing: product.pricing || {},
+        pricing: pricing || {},
         stock: product.stock || 0,
         status: product.status || 'active'
       }])
@@ -111,6 +159,17 @@ export const supabaseContentService = {
   },
 
   async updateProduct(id: number, updates: Partial<Product>): Promise<boolean> {
+    // Convert simple price to pricing object if price is provided
+    let pricing = updates.pricing;
+    if (updates.price && !pricing) {
+      pricing = {
+        "250g": updates.price,
+        "500g": Math.round(updates.price * 1.8),
+        "1kg": Math.round(updates.price * 3.5)
+      };
+      updates.pricing = pricing;
+    }
+
     const { error } = await supabase
       .from('products')
       .update(updates)

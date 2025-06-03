@@ -1,3 +1,4 @@
+
 import Layout from "@/components/Layout";
 import SupabaseProductCard from "@/components/SupabaseProductCard";
 import TestimonialCard from "@/components/TestimonialCard";
@@ -11,6 +12,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabaseContentService, Product } from "@/services/supabaseContentService";
 import { contentService } from "@/services/contentService";
+import { supabase } from "@/integrations/supabase/client";
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -55,7 +57,37 @@ const Home = () => {
     };
     
     loadData();
-  }, []);
+
+    // Set up real-time subscription for products
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'products'
+        },
+        async (payload) => {
+          console.log('Product change detected:', payload);
+          // Refresh featured products when any product changes
+          const featuredProducts = await supabaseContentService.getFeaturedProducts();
+          setProducts(featuredProducts);
+          
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "New Product Added",
+              description: "A new product has been added to our collection!",
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
   
   // Force re-render of testimonials when a new one is added
   const handleReviewSubmitted = () => {

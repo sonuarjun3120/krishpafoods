@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Product } from '@/services/supabaseContentService';
+import { useCategories } from '@/hooks/useCategories';
 
 interface SupabaseProductFormProps {
   product?: Product | null;
@@ -13,15 +15,8 @@ interface SupabaseProductFormProps {
   onCancel: () => void;
 }
 
-// Home page categories - keeping them consistent
-const PRODUCT_CATEGORIES = [
-  'Vegetable Pickles',
-  'Fruit Pickles', 
-  'Citrus Pickles',
-  'Spice Blends'
-];
-
 export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSave, onCancel }) => {
+  const { categories, loading: categoriesLoading } = useCategories();
   const [formData, setFormData] = useState({
     name: product?.name || '',
     description: product?.description || '',
@@ -33,14 +28,50 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
     shelfLife: product?.shelfLife || '',
     status: product?.status || 'active',
     stock: product?.stock || 0,
+    price: 0, // Simple price field
     ingredients: product?.ingredients ? (Array.isArray(product.ingredients) ? product.ingredients.join(', ') : '') : '',
     servingSuggestions: product?.servingSuggestions ? (Array.isArray(product.servingSuggestions) ? product.servingSuggestions.join(', ') : '') : '',
     pricing: product?.pricing ? JSON.stringify(product.pricing) : '{"250g": 299, "500g": 549, "1kg": 999}',
   });
 
+  // Extract price from pricing for editing
+  useEffect(() => {
+    if (product?.pricing && typeof product.pricing === 'object') {
+      const prices = Object.values(product.pricing);
+      if (prices.length > 0) {
+        setFormData(prev => ({ ...prev, price: Number(prices[0]) || 0 }));
+      }
+    }
+  }, [product]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.name.trim()) {
+      alert('Product name is required');
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      alert('Product description is required');
+      return;
+    }
+
+    if (!formData.image.trim()) {
+      alert('Product image URL is required');
+      return;
+    }
+
+    if (!formData.category) {
+      alert('Please select a category');
+      return;
+    }
+
+    if (formData.price <= 0) {
+      alert('Please enter a valid price');
+      return;
+    }
+
     try {
       const productData: Partial<Product> = {
         name: formData.name,
@@ -53,15 +84,15 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
         shelfLife: formData.shelfLife,
         status: formData.status,
         stock: parseInt(formData.stock.toString()),
+        price: formData.price, // Use simple price
         ingredients: formData.ingredients ? formData.ingredients.split(',').map(item => item.trim()) : [],
         servingSuggestions: formData.servingSuggestions ? formData.servingSuggestions.split(',').map(item => item.trim()) : [],
-        pricing: formData.pricing ? JSON.parse(formData.pricing) : null,
       };
       
       onSave(productData);
     } catch (error) {
-      console.error('Error parsing JSON fields:', error);
-      alert('Please check your JSON formatting in the pricing field.');
+      console.error('Error preparing product data:', error);
+      alert('Please check your form data.');
     }
   };
 
@@ -82,17 +113,34 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="price">Price (₹) *</Label>
+            <Input
+              id="price"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="category">Category *</Label>
             <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                {PRODUCT_CATEGORIES.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
+                {categoriesLoading ? (
+                  <SelectItem value="" disabled>Loading categories...</SelectItem>
+                ) : (
+                  categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -105,19 +153,6 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
               value={formData.stock}
               onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </div>
@@ -172,6 +207,19 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
                 placeholder="e.g., 6 months"
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
@@ -188,6 +236,18 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
             placeholder="https://example.com/image.jpg"
             required
           />
+          {formData.image && (
+            <div className="mt-2">
+              <img
+                src={formData.image}
+                alt="Preview"
+                className="w-20 h-20 object-cover rounded border"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -216,21 +276,6 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
               rows={2}
             />
           </div>
-        </div>
-      </div>
-
-      {/* Pricing */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Pricing</h3>
-        <div className="space-y-2">
-          <Label htmlFor="pricing">Pricing (JSON format)</Label>
-          <Textarea
-            id="pricing"
-            value={formData.pricing}
-            onChange={(e) => setFormData({ ...formData, pricing: e.target.value })}
-            placeholder='{"250g": 299, "500g": 549, "1kg": 999}'
-            rows={2}
-          />
         </div>
       </div>
 
