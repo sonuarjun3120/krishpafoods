@@ -133,7 +133,9 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
               </SelectTrigger>
               <SelectContent>
                 {categoriesLoading ? (
-                  <SelectItem value="" disabled>Loading categories...</SelectItem>
+                  <div className="p-2 text-sm text-gray-500">Loading categories...</div>
+                ) : categories.length === 0 ? (
+                  <div className="p-2 text-sm text-gray-500">No categories available</div>
                 ) : (
                   categories.map((category) => (
                     <SelectItem key={category.id} value={category.name}>
