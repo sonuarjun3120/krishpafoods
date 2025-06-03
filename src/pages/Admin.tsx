@@ -11,6 +11,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { MediaManagement } from '@/components/admin/MediaManagement';
 import { PageContentManagement } from '@/components/admin/PageContentManagement';
 import { AdminSettings } from '@/components/admin/AdminSettings';
+import { Settings } from '@/components/admin/Settings';
 import { AdminAuth } from '@/components/admin/AdminAuth';
 
 export type AdminSection = 
@@ -22,7 +23,8 @@ export type AdminSection =
   | 'users' 
   | 'media' 
   | 'pages' 
-  | 'settings';
+  | 'settings'
+  | 'user-settings';
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
@@ -54,6 +56,8 @@ const Admin = () => {
         return <PageContentManagement />;
       case 'settings':
         return <AdminSettings />;
+      case 'user-settings':
+        return <Settings />;
       default:
         return <DashboardOverview />;
     }

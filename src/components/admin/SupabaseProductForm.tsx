@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +12,14 @@ interface SupabaseProductFormProps {
   onSave: (product: Partial<Product>) => void;
   onCancel: () => void;
 }
+
+// Home page categories - keeping them consistent
+const PRODUCT_CATEGORIES = [
+  'Vegetable Pickles',
+  'Fruit Pickles', 
+  'Citrus Pickles',
+  'Spice Blends'
+];
 
 export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -81,10 +88,11 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Vegetable Pickles">Vegetable Pickles</SelectItem>
-                <SelectItem value="Fruit Pickles">Fruit Pickles</SelectItem>
-                <SelectItem value="Citrus Pickles">Citrus Pickles</SelectItem>
-                <SelectItem value="Spice Blends">Spice Blends</SelectItem>
+                {PRODUCT_CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -95,8 +103,21 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
               id="stock"
               type="number"
               value={formData.stock}
-              onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

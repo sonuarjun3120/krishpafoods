@@ -86,8 +86,39 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_verifications: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          otp_code: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          otp_code: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          otp_code?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
+          category: string | null
           created_at: string
           description: string
           featured: boolean | null
@@ -100,8 +131,12 @@ export type Database = {
           servingSuggestions: Json
           shelfLife: string
           spiceLevel: string
+          status: string | null
+          stock: number | null
+          updated_at: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           description: string
           featured?: boolean | null
@@ -114,8 +149,12 @@ export type Database = {
           servingSuggestions: Json
           shelfLife: string
           spiceLevel: string
+          status?: string | null
+          stock?: number | null
+          updated_at?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           description?: string
           featured?: boolean | null
@@ -128,6 +167,36 @@ export type Database = {
           servingSuggestions?: Json
           shelfLife?: string
           spiceLevel?: string
+          status?: string | null
+          stock?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
