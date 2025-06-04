@@ -1,22 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from "react-router-dom";
 import { Salad, Beef, Package } from "lucide-react";
-import { supabaseContentService, Category } from "@/services/supabaseContentService";
+import { useCategories } from "@/hooks/useCategories";
 
 const Categories = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const data = await supabaseContentService.getCategories();
-      setCategories(data);
-      setLoading(false);
-    };
-
-    fetchCategories();
-  }, []);
+  const { categories, loading } = useCategories();
 
   // Icon mapping for categories
   const getIcon = (iconName?: string) => {

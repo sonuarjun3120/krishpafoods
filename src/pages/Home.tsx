@@ -1,4 +1,3 @@
-
 import Layout from "@/components/Layout";
 import SupabaseProductCard from "@/components/SupabaseProductCard";
 import TestimonialCard from "@/components/TestimonialCard";
@@ -10,17 +9,20 @@ import testimonials, { fetchTestimonials, editTestimonial, deleteTestimonial } f
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { supabaseContentService, Product } from "@/services/supabaseContentService";
+import { supabaseContentService } from "@/services/supabaseContentService";
 import { contentService } from "@/services/contentService";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
 
 const Home = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const { products } = useSupabaseProducts();
   const [refreshTestimonials, setRefreshTestimonials] = useState(0);
   const [showAllTestimonials, setShowAllTestimonials] = useState(false);
   const [homeContent, setHomeContent] = useState<any>(null);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Get only featured products
+  const featuredProducts = products.filter(product => product.featured);
   
   // Initially show only 4 testimonials
   const initialTestimonialsCount = 4;
@@ -28,15 +30,10 @@ const Home = () => {
     ? testimonials 
     : testimonials.slice(0, initialTestimonialsCount);
 
-  // Load products and content
+  // Load content
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      
-      // Load featured products from Supabase
-      const featuredProducts = await supabaseContentService.getFeaturedProducts();
-      console.log('Featured products:', featuredProducts);
-      setProducts(featuredProducts);
       
       // Load home page content from contentService (fallback)
       const pageContent = contentService.getPageContent('home');
@@ -57,37 +54,7 @@ const Home = () => {
     };
     
     loadData();
-
-    // Set up real-time subscription for products
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'products'
-        },
-        async (payload) => {
-          console.log('Product change detected:', payload);
-          // Refresh featured products when any product changes
-          const featuredProducts = await supabaseContentService.getFeaturedProducts();
-          setProducts(featuredProducts);
-          
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "New Product Added",
-              description: "A new product has been added to our collection!",
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [toast]);
+  }, []);
   
   // Force re-render of testimonials when a new one is added
   const handleReviewSubmitted = () => {
@@ -215,8 +182,8 @@ const Home = () => {
             Handcrafted in small batches using traditional methods and the finest ingredients
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.length > 0 ? (
-              products.map(product => (
+            {featuredProducts.length > 0 ? (
+              featuredProducts.map(product => (
                 <SupabaseProductCard key={product.id} product={product} />
               ))
             ) : (
