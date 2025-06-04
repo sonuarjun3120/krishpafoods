@@ -7,33 +7,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ProductForm } from '@/components/admin/ProductForm';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  category: string;
-  stock: number;
-  status: 'active' | 'inactive';
-  image: string;
-}
-
-const mockProducts: Product[] = [
-  { id: '1', name: 'Garam Masala', price: 25.99, category: 'Spices', stock: 50, status: 'active', image: '/placeholder.svg' },
-  { id: '2', name: 'Turmeric Powder', price: 15.99, category: 'Spices', stock: 30, status: 'active', image: '/placeholder.svg' },
-  { id: '3', name: 'Basmati Rice', price: 45.99, category: 'Grains', stock: 0, status: 'inactive', image: '/placeholder.svg' },
-];
+import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
+import { SupabaseProductForm } from './SupabaseProductForm';
+import { Product } from '@/services/supabaseContentService';
 
 export const ProductManagement = () => {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
+  const { products, loading, createProduct, updateProduct, deleteProduct } = useSupabaseProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleAddProduct = () => {
@@ -46,29 +32,48 @@ export const ProductManagement = () => {
     setShowForm(true);
   };
 
-  const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
+  const handleDeleteProduct = async (id: number) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      await deleteProduct(id);
+    }
   };
 
-  const handleSaveProduct = (productData: Partial<Product>) => {
+  const handleSaveProduct = async (productData: Partial<Product>) => {
+    let success = false;
     if (editingProduct) {
-      setProducts(products.map(p => 
-        p.id === editingProduct.id ? { ...p, ...productData } : p
-      ));
+      success = await updateProduct(editingProduct.id, productData);
     } else {
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        name: productData.name || '',
-        price: productData.price || 0,
-        category: productData.category || '',
-        stock: productData.stock || 0,
-        status: 'active',
-        image: productData.image || '/placeholder.svg'
-      };
-      setProducts([...products, newProduct]);
+      success = await createProduct(productData as Omit<Product, 'id' | 'created_at' | 'updated_at'>);
     }
-    setShowForm(false);
+    
+    if (success) {
+      setShowForm(false);
+    }
   };
+
+  // Helper function to get base price from pricing
+  const getBasePrice = (pricing: any) => {
+    if (!pricing) return 'N/A';
+    
+    if (typeof pricing === 'object' && !Array.isArray(pricing)) {
+      const prices = Object.values(pricing);
+      return prices.length > 0 ? `₹${prices[0]}` : 'N/A';
+    }
+    
+    if (Array.isArray(pricing) && pricing.length > 0) {
+      return `₹${pricing[0].price}`;
+    }
+    
+    return 'N/A';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -83,7 +88,7 @@ export const ProductManagement = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Products</CardTitle>
+            <CardTitle>Products ({products.length})</CardTitle>
             <div className="flex items-center space-x-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -98,64 +103,79 @@ export const ProductManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-10 h-10 rounded-md object-cover"
-                      />
-                      <span className="font-medium">{product.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>${product.price}</TableCell>
-                  <TableCell>
-                    <span className={product.stock === 0 ? 'text-red-500' : ''}>
-                      {product.stock}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
-                      {product.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {products.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">No products found.</p>
+              <Button onClick={handleAddProduct}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Product
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Featured</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-10 h-10 rounded-md object-cover"
+                        />
+                        <div>
+                          <div className="font-medium">{product.name}</div>
+                          <div className="text-sm text-gray-500 truncate max-w-xs">
+                            {product.description}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{product.category || 'Uncategorized'}</TableCell>
+                    <TableCell>{getBasePrice(product.pricing)}</TableCell>
+                    <TableCell>
+                      <Badge variant={product.featured ? 'default' : 'secondary'}>
+                        {product.featured ? 'Yes' : 'No'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
+                        {product.status || 'active'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteProduct(product.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -166,7 +186,7 @@ export const ProductManagement = () => {
               {editingProduct ? 'Edit Product' : 'Add New Product'}
             </DialogTitle>
           </DialogHeader>
-          <ProductForm
+          <SupabaseProductForm
             product={editingProduct}
             onSave={handleSaveProduct}
             onCancel={() => setShowForm(false)}

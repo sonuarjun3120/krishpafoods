@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Sidebar } from '@/components/admin/Sidebar';
 import { Header } from '@/components/admin/Header';
 import { DashboardOverview } from '@/components/admin/DashboardOverview';
-import { SupabaseProductManagement } from '@/components/admin/SupabaseProductManagement';
+import { ProductManagement } from '@/components/admin/ProductManagement';
 import { CategoryManagement } from '@/components/admin/CategoryManagement';
 import { OrderManagement } from '@/components/admin/OrderManagement';
 import { SalesAnalytics } from '@/components/admin/SalesAnalytics';
@@ -41,7 +41,7 @@ const Admin = () => {
       case 'dashboard':
         return <DashboardOverview />;
       case 'products':
-        return <SupabaseProductManagement />;
+        return <ProductManagement />;
       case 'categories':
         return <CategoryManagement />;
       case 'orders':
