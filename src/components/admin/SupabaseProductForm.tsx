@@ -16,10 +16,9 @@ interface SupabaseProductFormProps {
   onCancel: () => void;
 }
 
-interface PricingData {
-  "250g": number;
-  "500g": number;
-  "1kg": number;
+interface CustomSize {
+  size: string;
+  price: number;
 }
 
 export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSave, onCancel }) => {
@@ -39,31 +38,35 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
 
   const [images, setImages] = useState<string[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
-  const [pricing, setPricing] = useState<PricingData>({
-    "250g": 0,
-    "500g": 0,
-    "1kg": 0
-  });
+  const [customSizes, setCustomSizes] = useState<CustomSize[]>([
+    { size: '250g', price: 0 },
+    { size: '500g', price: 0 },
+    { size: '1kg', price: 0 }
+  ]);
 
   // Extract images and pricing from product data
   useEffect(() => {
     if (product) {
-      // Handle main image and additional images
+      // Handle main image
       const productImages = [];
       if (product.image) {
         productImages.push(product.image);
       }
-      
       setImages(productImages);
 
-      // Extract pricing data
+      // Extract pricing data and convert to custom sizes
       if (product.pricing && typeof product.pricing === 'object') {
-        const existingPricing = {
-          "250g": Number(product.pricing["250g"]) || 0,
-          "500g": Number(product.pricing["500g"]) || 0,
-          "1kg": Number(product.pricing["1kg"]) || 0
-        };
-        setPricing(existingPricing);
+        const extractedSizes: CustomSize[] = [];
+        Object.entries(product.pricing).forEach(([size, price]) => {
+          extractedSizes.push({
+            size: size,
+            price: Number(price) || 0
+          });
+        });
+        
+        if (extractedSizes.length > 0) {
+          setCustomSizes(extractedSizes);
+        }
       }
     }
   }, [product]);
@@ -79,11 +82,18 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handlePricingChange = (weight: keyof PricingData, value: string) => {
-    setPricing(prev => ({
-      ...prev,
-      [weight]: parseFloat(value) || 0
-    }));
+  const addCustomSize = () => {
+    setCustomSizes([...customSizes, { size: '', price: 0 }]);
+  };
+
+  const updateCustomSize = (index: number, field: 'size' | 'price', value: string | number) => {
+    const updated = [...customSizes];
+    updated[index] = { ...updated[index], [field]: value };
+    setCustomSizes(updated);
+  };
+
+  const removeCustomSize = (index: number) => {
+    setCustomSizes(customSizes.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -110,12 +120,20 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
       return;
     }
 
-    if (pricing["250g"] <= 0 || pricing["500g"] <= 0 || pricing["1kg"] <= 0) {
-      alert('Please enter valid prices for all weight options');
+    // Validate custom sizes
+    const validSizes = customSizes.filter(size => size.size.trim() && size.price > 0);
+    if (validSizes.length === 0) {
+      alert('Please add at least one valid size with price');
       return;
     }
 
     try {
+      // Create pricing object from custom sizes
+      const pricing: { [key: string]: number } = {};
+      validSizes.forEach(size => {
+        pricing[size.size.trim()] = size.price;
+      });
+
       const productData: Partial<Product> = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -223,54 +241,50 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
         </CardContent>
       </Card>
 
-      {/* Pricing */}
+      {/* Custom Sizes and Pricing */}
       <Card>
         <CardHeader>
-          <CardTitle>Pricing (₹)</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Sizes and Pricing (₹)</CardTitle>
+            <Button type="button" onClick={addCustomSize} variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Size
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="price250g">250g Price *</Label>
-              <Input
-                id="price250g"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={pricing["250g"]}
-                onChange={(e) => handlePricingChange("250g", e.target.value)}
-                required
-                placeholder="Enter price for 250g"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="price500g">500g Price *</Label>
-              <Input
-                id="price500g"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={pricing["500g"]}
-                onChange={(e) => handlePricingChange("500g", e.target.value)}
-                required
-                placeholder="Enter price for 500g"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="price1kg">1kg Price *</Label>
-              <Input
-                id="price1kg"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={pricing["1kg"]}
-                onChange={(e) => handlePricingChange("1kg", e.target.value)}
-                required
-                placeholder="Enter price for 1kg"
-              />
-            </div>
+          <div className="space-y-4">
+            {customSizes.map((size, index) => (
+              <div key={index} className="flex items-center gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Size (e.g., 250g, 500g, 1kg)"
+                    value={size.size}
+                    onChange={(e) => updateCustomSize(index, 'size', e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Input
+                    type="number"
+                    placeholder="Price"
+                    step="0.01"
+                    min="0"
+                    value={size.price}
+                    onChange={(e) => updateCustomSize(index, 'price', parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                {customSizes.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeCustomSize(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

@@ -57,24 +57,13 @@ export const ProductManagement = () => {
     
     if (typeof pricing === 'object' && !Array.isArray(pricing)) {
       const prices = [];
-      if (pricing["250g"]) prices.push(`250g: ₹${pricing["250g"]}`);
-      if (pricing["500g"]) prices.push(`500g: ₹${pricing["500g"]}`);
-      if (pricing["1kg"]) prices.push(`1kg: ₹${pricing["1kg"]}`);
+      Object.entries(pricing).forEach(([size, price]) => {
+        prices.push(`${size}: ₹${price}`);
+      });
       return prices.length > 0 ? prices.join(', ') : 'N/A';
     }
     
     return 'N/A';
-  };
-
-  // Helper function to get base price for sorting/display
-  const getBasePrice = (pricing: any) => {
-    if (!pricing) return 0;
-    
-    if (typeof pricing === 'object' && !Array.isArray(pricing)) {
-      return pricing["250g"] || 0;
-    }
-    
-    return 0;
   };
 
   if (loading) {
@@ -162,7 +151,7 @@ export const ProductManagement = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">
+                      <div className="text-sm max-w-xs">
                         {formatPricing(product.pricing)}
                       </div>
                     </TableCell>
