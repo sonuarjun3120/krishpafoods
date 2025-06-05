@@ -84,10 +84,50 @@ export const useCategories = () => {
     }
   };
 
+  const updateCategory = async (id: string, updates: Partial<Category>) => {
+    const success = await supabaseContentService.updateCategory(id, updates);
+    if (success) {
+      // Real-time will handle the UI update
+      toast({
+        title: "Category Updated",
+        description: "Category has been updated successfully",
+      });
+      return true;
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to update category",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    const success = await supabaseContentService.deleteCategory(id);
+    if (success) {
+      // Real-time will handle the UI update
+      toast({
+        title: "Category Deleted",
+        description: "Category has been deleted successfully",
+      });
+      return true;
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return {
     categories,
     loading,
     createCategory,
+    updateCategory,
+    deleteCategory,
     refreshCategories: fetchCategories
   };
 };

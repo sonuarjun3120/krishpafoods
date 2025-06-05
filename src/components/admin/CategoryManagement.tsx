@@ -11,7 +11,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { Category } from '@/services/supabaseContentService';
 
 export const CategoryManagement = () => {
-  const { categories, loading, createCategory } = useCategories();
+  const { categories, loading, createCategory, updateCategory, deleteCategory } = useCategories();
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({ 
@@ -38,6 +38,12 @@ export const CategoryManagement = () => {
     setShowForm(true);
   };
 
+  const handleDeleteCategory = async (id: string) => {
+    if (confirm('Are you sure you want to delete this category?')) {
+      await deleteCategory(id);
+    }
+  };
+
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -46,12 +52,22 @@ export const CategoryManagement = () => {
       return;
     }
 
-    const success = await createCategory({
-      name: formData.name.trim(),
-      description: formData.description.trim(),
-      icon: formData.icon,
-      image: formData.image.trim()
-    });
+    let success = false;
+    if (editingCategory) {
+      success = await updateCategory(editingCategory.id, {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        icon: formData.icon,
+        image: formData.image.trim()
+      });
+    } else {
+      success = await createCategory({
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        icon: formData.icon,
+        image: formData.image.trim()
+      });
+    }
 
     if (success) {
       setShowForm(false);
@@ -108,6 +124,14 @@ export const CategoryManagement = () => {
                   <div className="flex items-center space-x-2">
                     <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)}>
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteCategory(category.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

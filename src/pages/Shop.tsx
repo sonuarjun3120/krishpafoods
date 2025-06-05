@@ -1,15 +1,16 @@
 
 import Layout from "@/components/Layout";
-import ProductCard from "@/components/ProductCard";
-import products from "@/data/products";
+import SupabaseProductCard from "@/components/SupabaseProductCard";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
 
 const Shop = () => {
+  const { products, loading } = useSupabaseProducts();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const location = useLocation();
@@ -35,6 +36,16 @@ const Shop = () => {
   const handleGoBack = () => {
     navigate(-1);
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -75,9 +86,9 @@ const Shop = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="veg">Vegetarian</SelectItem>
-                  <SelectItem value="nonveg">Non-Vegetarian</SelectItem>
-                  <SelectItem value="combo">Combo Packs</SelectItem>
+                  <SelectItem value="Veg">Veg</SelectItem>
+                  <SelectItem value="Non-Veg">Non-Veg</SelectItem>
+                  <SelectItem value="Combos">Combos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -87,7 +98,7 @@ const Shop = () => {
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in">
             {filteredProducts.map(product => (
-              <ProductCard key={product.id} {...product} />
+              <SupabaseProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (

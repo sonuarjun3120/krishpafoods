@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X, Plus } from 'lucide-react';
 import { Product } from '@/services/supabaseContentService';
+import { useCategories } from '@/hooks/useCategories';
 
 interface SupabaseProductFormProps {
   product?: Product | null;
@@ -22,6 +22,7 @@ interface CustomSize {
 }
 
 export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSave, onCancel }) => {
+  const { categories } = useCategories();
   const [formData, setFormData] = useState({
     name: product?.name || '',
     description: product?.description || '',
@@ -185,9 +186,11 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Veg">Veg</SelectItem>
-                  <SelectItem value="Non-Veg">Non-Veg</SelectItem>
-                  <SelectItem value="Combos">Combos</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

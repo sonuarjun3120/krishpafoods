@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Product {
@@ -79,6 +78,32 @@ export const supabaseContentService = {
     return data;
   },
 
+  async updateCategory(id: string, updates: Partial<Category>): Promise<boolean> {
+    const { error } = await supabase
+      .from('categories')
+      .update(updates)
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error updating category:', error);
+      return false;
+    }
+    return true;
+  },
+
+  async deleteCategory(id: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting category:', error);
+      return false;
+    }
+    return true;
+  },
+
   // Products
   async getProducts(): Promise<Product[]> {
     const { data, error } = await supabase
@@ -122,28 +147,7 @@ export const supabaseContentService = {
   },
 
   async createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product | null> {
-    // Create pricing object from simple price
-    const pricing = product.price ? {
-      "250g": product.price,
-      "500g": Math.round(product.price * 1.8),
-      "1kg": Math.round(product.price * 3.5)
-    } : {};
-
-    console.log('Creating product with data:', {
-      name: product.name,
-      description: product.description,
-      longDescription: product.longDescription || '',
-      image: product.image,
-      category: product.category || '',
-      featured: product.featured || false,
-      spiceLevel: product.spiceLevel || 'Medium',
-      shelfLife: product.shelfLife || '',
-      ingredients: product.ingredients || [],
-      servingSuggestions: product.servingSuggestions || [],
-      pricing: pricing,
-      stock: product.stock || 0,
-      status: product.status || 'active'
-    });
+    console.log('Creating product with data:', product);
 
     const { data, error } = await supabase
       .from('products')
@@ -158,7 +162,7 @@ export const supabaseContentService = {
         shelfLife: product.shelfLife || '',
         ingredients: product.ingredients || [],
         servingSuggestions: product.servingSuggestions || [],
-        pricing: pricing,
+        pricing: product.pricing || {},
         stock: product.stock || 0,
         status: product.status || 'active'
       }])
@@ -173,19 +177,9 @@ export const supabaseContentService = {
   },
 
   async updateProduct(id: number, updates: Partial<Product>): Promise<boolean> {
-    // Create pricing object from simple price if provided
-    let updateData = { ...updates };
-    if (updates.price && !updates.pricing) {
-      updateData.pricing = {
-        "250g": updates.price,
-        "500g": Math.round(updates.price * 1.8),
-        "1kg": Math.round(updates.price * 3.5)
-      };
-    }
-
     const { error } = await supabase
       .from('products')
-      .update(updateData)
+      .update(updates)
       .eq('id', id);
     
     if (error) {
