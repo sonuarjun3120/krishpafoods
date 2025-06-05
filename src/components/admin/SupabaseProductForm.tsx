@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { X, Plus } from 'lucide-react';
 import { Product } from '@/services/supabaseContentService';
-import { useCategories } from '@/hooks/useCategories';
 
 interface SupabaseProductFormProps {
   product?: Product | null;
@@ -14,33 +16,75 @@ interface SupabaseProductFormProps {
   onCancel: () => void;
 }
 
+interface PricingData {
+  "250g": number;
+  "500g": number;
+  "1kg": number;
+}
+
 export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ product, onSave, onCancel }) => {
-  const { categories, loading: categoriesLoading } = useCategories();
   const [formData, setFormData] = useState({
     name: product?.name || '',
     description: product?.description || '',
     longDescription: product?.longDescription || '',
-    image: product?.image || '',
     category: product?.category || '',
     featured: product?.featured || false,
     spiceLevel: product?.spiceLevel || 'Medium',
     shelfLife: product?.shelfLife || '',
     status: product?.status || 'active',
     stock: product?.stock || 0,
-    price: 0,
     ingredients: product?.ingredients ? (Array.isArray(product.ingredients) ? product.ingredients.join(', ') : '') : '',
     servingSuggestions: product?.servingSuggestions ? (Array.isArray(product.servingSuggestions) ? product.servingSuggestions.join(', ') : '') : '',
   });
 
-  // Extract price from pricing for editing
+  const [images, setImages] = useState<string[]>([]);
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [pricing, setPricing] = useState<PricingData>({
+    "250g": 0,
+    "500g": 0,
+    "1kg": 0
+  });
+
+  // Extract images and pricing from product data
   useEffect(() => {
-    if (product?.pricing && typeof product.pricing === 'object') {
-      const prices = Object.values(product.pricing);
-      if (prices.length > 0) {
-        setFormData(prev => ({ ...prev, price: Number(prices[0]) || 0 }));
+    if (product) {
+      // Handle main image and additional images
+      const productImages = [];
+      if (product.image) {
+        productImages.push(product.image);
+      }
+      
+      setImages(productImages);
+
+      // Extract pricing data
+      if (product.pricing && typeof product.pricing === 'object') {
+        const existingPricing = {
+          "250g": Number(product.pricing["250g"]) || 0,
+          "500g": Number(product.pricing["500g"]) || 0,
+          "1kg": Number(product.pricing["1kg"]) || 0
+        };
+        setPricing(existingPricing);
       }
     }
   }, [product]);
+
+  const addImage = () => {
+    if (newImageUrl.trim() && !images.includes(newImageUrl.trim())) {
+      setImages([...images, newImageUrl.trim()]);
+      setNewImageUrl('');
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
+  const handlePricingChange = (weight: keyof PricingData, value: string) => {
+    setPricing(prev => ({
+      ...prev,
+      [weight]: parseFloat(value) || 0
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,18 +100,18 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
       return;
     }
 
-    if (!formData.image.trim()) {
-      alert('Product image URL is required');
-      return;
-    }
-
     if (!formData.category) {
       alert('Please select a category');
       return;
     }
 
-    if (formData.price <= 0) {
-      alert('Please enter a valid price greater than 0');
+    if (images.length === 0) {
+      alert('At least one product image is required');
+      return;
+    }
+
+    if (pricing["250g"] <= 0 || pricing["500g"] <= 0 || pricing["1kg"] <= 0) {
+      alert('Please enter valid prices for all weight options');
       return;
     }
 
@@ -76,14 +120,14 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
         name: formData.name.trim(),
         description: formData.description.trim(),
         longDescription: formData.longDescription.trim(),
-        image: formData.image.trim(),
+        image: images[0], // Main image
         category: formData.category,
         featured: formData.featured,
         spiceLevel: formData.spiceLevel,
         shelfLife: formData.shelfLife.trim(),
         status: formData.status,
         stock: parseInt(formData.stock.toString()) || 0,
-        price: formData.price,
+        pricing: pricing,
         ingredients: formData.ingredients ? formData.ingredients.split(',').map(item => item.trim()).filter(item => item) : [],
         servingSuggestions: formData.servingSuggestions ? formData.servingSuggestions.split(',').map(item => item.trim()).filter(item => item) : [],
       };
@@ -99,77 +143,63 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto">
       {/* Basic Information */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Product Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-              placeholder="Enter product name"
-            />
+      <Card>
+        <CardHeader>
+          <CardTitle>Basic Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Product Name *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                placeholder="Enter product name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Category *</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Veg">Veg</SelectItem>
+                  <SelectItem value="Non-Veg">Non-Veg</SelectItem>
+                  <SelectItem value="Combos">Combos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stock Quantity</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                value={formData.stock}
+                onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+                placeholder="Enter stock quantity"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="price">Base Price (₹) *</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-              required
-              placeholder="Enter base price for 250g"
-            />
-            <p className="text-xs text-gray-500">
-              This will create pricing for 250g, 500g (1.8x), and 1kg (3.5x)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="category">Category *</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categoriesLoading ? (
-                  <div className="p-2 text-sm text-gray-500">Loading categories...</div>
-                ) : categories.length === 0 ? (
-                  <div className="p-2 text-sm text-gray-500">No categories available</div>
-                ) : (
-                  categories.map((category) => (
-                    <SelectItem key={category.id} value={category.name}>
-                      {category.name}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="stock">Stock Quantity</Label>
-            <Input
-              id="stock"
-              type="number"
-              min="0"
-              value={formData.stock}
-              onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
-              placeholder="Enter stock quantity"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Product Details */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Product Details</h3>
-        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="description">Short Description *</Label>
             <Textarea
@@ -190,7 +220,123 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
               rows={3}
             />
           </div>
+        </CardContent>
+      </Card>
 
+      {/* Pricing */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Pricing (₹)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="price250g">250g Price *</Label>
+              <Input
+                id="price250g"
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={pricing["250g"]}
+                onChange={(e) => handlePricingChange("250g", e.target.value)}
+                required
+                placeholder="Enter price for 250g"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="price500g">500g Price *</Label>
+              <Input
+                id="price500g"
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={pricing["500g"]}
+                onChange={(e) => handlePricingChange("500g", e.target.value)}
+                required
+                placeholder="Enter price for 500g"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="price1kg">1kg Price *</Label>
+              <Input
+                id="price1kg"
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={pricing["1kg"]}
+                onChange={(e) => handlePricingChange("1kg", e.target.value)}
+                required
+                placeholder="Enter price for 1kg"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Product Images */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Images</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Add Image URL</Label>
+            <div className="flex gap-2">
+              <Input
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+              />
+              <Button type="button" onClick={addImage} variant="outline">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {images.length > 0 && (
+            <div className="space-y-2">
+              <Label>Current Images</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {images.map((imageUrl, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={imageUrl}
+                      alt={`Product image ${index + 1}`}
+                      className="w-full h-24 object-cover rounded border"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                      onClick={() => removeImage(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                    {index === 0 && (
+                      <div className="absolute bottom-1 left-1 bg-primary text-white text-xs px-1 rounded">
+                        Main
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Additional Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Additional Details</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="spiceLevel">Spice Level</Label>
@@ -216,54 +362,8 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
                 placeholder="e.g., 6 months"
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Media */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Media</h3>
-        <div className="space-y-2">
-          <Label htmlFor="image">Image URL *</Label>
-          <Input
-            id="image"
-            value={formData.image}
-            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-            placeholder="https://example.com/image.jpg"
-            required
-          />
-          {formData.image && (
-            <div className="mt-2">
-              <img
-                src={formData.image}
-                alt="Preview"
-                className="w-20 h-20 object-cover rounded border"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Ingredients & Suggestions */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Ingredients & Suggestions</h3>
-        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="ingredients">Ingredients (comma separated)</Label>
             <Textarea
@@ -285,21 +385,17 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
               rows={2}
             />
           </div>
-        </div>
-      </div>
 
-      {/* Settings */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="featured"
-            checked={formData.featured}
-            onCheckedChange={(checked) => setFormData({ ...formData, featured: !!checked })}
-          />
-          <Label htmlFor="featured">Featured Product (will appear on homepage)</Label>
-        </div>
-      </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="featured"
+              checked={formData.featured}
+              onCheckedChange={(checked) => setFormData({ ...formData, featured: !!checked })}
+            />
+            <Label htmlFor="featured">Featured Product (will appear on homepage)</Label>
+          </div>
+        </CardContent>
+      </Card>
       
       <div className="flex justify-end space-x-2 pt-4 border-t">
         <Button type="button" variant="outline" onClick={onCancel}>

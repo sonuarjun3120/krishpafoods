@@ -51,20 +51,30 @@ export const ProductManagement = () => {
     }
   };
 
-  // Helper function to get base price from pricing
-  const getBasePrice = (pricing: any) => {
+  // Helper function to format pricing display
+  const formatPricing = (pricing: any) => {
     if (!pricing) return 'N/A';
     
     if (typeof pricing === 'object' && !Array.isArray(pricing)) {
-      const prices = Object.values(pricing);
-      return prices.length > 0 ? `₹${prices[0]}` : 'N/A';
-    }
-    
-    if (Array.isArray(pricing) && pricing.length > 0) {
-      return `₹${pricing[0].price}`;
+      const prices = [];
+      if (pricing["250g"]) prices.push(`250g: ₹${pricing["250g"]}`);
+      if (pricing["500g"]) prices.push(`500g: ₹${pricing["500g"]}`);
+      if (pricing["1kg"]) prices.push(`1kg: ₹${pricing["1kg"]}`);
+      return prices.length > 0 ? prices.join(', ') : 'N/A';
     }
     
     return 'N/A';
+  };
+
+  // Helper function to get base price for sorting/display
+  const getBasePrice = (pricing: any) => {
+    if (!pricing) return 0;
+    
+    if (typeof pricing === 'object' && !Array.isArray(pricing)) {
+      return pricing["250g"] || 0;
+    }
+    
+    return 0;
   };
 
   if (loading) {
@@ -117,7 +127,8 @@ export const ProductManagement = () => {
                 <TableRow>
                   <TableHead>Product</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
+                  <TableHead>Pricing</TableHead>
+                  <TableHead>Stock</TableHead>
                   <TableHead>Featured</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -131,7 +142,7 @@ export const ProductManagement = () => {
                         <img
                           src={product.image}
                           alt={product.name}
-                          className="w-10 h-10 rounded-md object-cover"
+                          className="w-12 h-12 rounded-md object-cover"
                         />
                         <div>
                           <div className="font-medium">{product.name}</div>
@@ -141,8 +152,21 @@ export const ProductManagement = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{product.category || 'Uncategorized'}</TableCell>
-                    <TableCell>{getBasePrice(product.pricing)}</TableCell>
+                    <TableCell>
+                      <Badge variant={
+                        product.category === 'Veg' ? 'default' : 
+                        product.category === 'Non-Veg' ? 'destructive' : 
+                        'secondary'
+                      }>
+                        {product.category || 'Uncategorized'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {formatPricing(product.pricing)}
+                      </div>
+                    </TableCell>
+                    <TableCell>{product.stock || 0}</TableCell>
                     <TableCell>
                       <Badge variant={product.featured ? 'default' : 'secondary'}>
                         {product.featured ? 'Yes' : 'No'}
@@ -180,7 +204,7 @@ export const ProductManagement = () => {
       </Card>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>
               {editingProduct ? 'Edit Product' : 'Add New Product'}
