@@ -43,7 +43,12 @@ export const useSupabaseAnalytics = () => {
     if (error) {
       console.error('Error fetching user analytics:', error);
     } else {
-      setUserAnalytics(data || []);
+      // Cast the data to match our UserAnalytics interface
+      const typedUserAnalytics = (data || []).map(user => ({
+        ...user,
+        status: user.status as UserAnalytics['status']
+      })) as UserAnalytics[];
+      setUserAnalytics(typedUserAnalytics);
     }
   };
 

@@ -39,7 +39,12 @@ export const useSupabaseOrders = () => {
         variant: "destructive",
       });
     } else {
-      setOrders(data || []);
+      // Cast the data to match our Order interface
+      const typedOrders = (data || []).map(order => ({
+        ...order,
+        status: order.status as Order['status']
+      })) as Order[];
+      setOrders(typedOrders);
     }
     setLoading(false);
   };
@@ -61,14 +66,22 @@ export const useSupabaseOrders = () => {
           console.log('Order change detected:', payload);
           
           if (payload.eventType === 'INSERT') {
-            setOrders(prev => [payload.new as Order, ...prev]);
+            const newOrder = {
+              ...payload.new,
+              status: payload.new.status as Order['status']
+            } as Order;
+            setOrders(prev => [newOrder, ...prev]);
             toast({
               title: "New Order",
-              description: `Order from ${(payload.new as Order).user_name} received`,
+              description: `Order from ${newOrder.user_name} received`,
             });
           } else if (payload.eventType === 'UPDATE') {
+            const updatedOrder = {
+              ...payload.new,
+              status: payload.new.status as Order['status']
+            } as Order;
             setOrders(prev => prev.map(order => 
-              order.id === payload.new.id ? payload.new as Order : order
+              order.id === updatedOrder.id ? updatedOrder : order
             ));
           } else if (payload.eventType === 'DELETE') {
             setOrders(prev => prev.filter(order => order.id !== payload.old.id));
