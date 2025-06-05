@@ -82,6 +82,9 @@ export type Database = {
           created_at: string
           id: string
           items: Json
+          order_notes: string | null
+          payment_method: string | null
+          payment_status: string | null
           shipping_address: Json
           status: string
           total_amount: number
@@ -94,6 +97,9 @@ export type Database = {
           created_at?: string
           id?: string
           items: Json
+          order_notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
           shipping_address: Json
           status?: string
           total_amount: number
@@ -106,6 +112,9 @@ export type Database = {
           created_at?: string
           id?: string
           items?: Json
+          order_notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
           shipping_address?: Json
           status?: string
           total_amount?: number
@@ -257,6 +266,48 @@ export type Database = {
           quote?: string
           updated_at?: string
           user_email?: string | null
+        }
+        Relationships: []
+      }
+      user_analytics: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_order_date: string | null
+          signup_date: string | null
+          status: string | null
+          total_orders: number | null
+          total_spent: number | null
+          updated_at: string | null
+          user_email: string
+          user_name: string | null
+          user_phone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_order_date?: string | null
+          signup_date?: string | null
+          status?: string | null
+          total_orders?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+          user_email: string
+          user_name?: string | null
+          user_phone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_order_date?: string | null
+          signup_date?: string | null
+          status?: string | null
+          total_orders?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+          user_email?: string
+          user_name?: string | null
+          user_phone?: string | null
         }
         Relationships: []
       }
