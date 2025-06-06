@@ -35,6 +35,9 @@ const ProductDetails = ({
   setQuantity,
   onAddToCart
 }: ProductDetailsProps) => {
+  // Add safety check for price
+  const safePrice = selectedPricing?.price || 0;
+  
   return (
     <div className="md:w-1/2 p-6 md:p-8">
       <h1 className="font-playfair text-3xl font-bold text-primary mb-2">
@@ -51,14 +54,14 @@ const ProductDetails = ({
           <SelectContent>
             {pricing.map((price) => (
               <SelectItem key={price.weight} value={price.weight}>
-                {price.weight} - ₹{price.price}
+                {price.weight} - ₹{price.price || 0}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         
         <p className="text-xl font-bold text-primary">
-          ₹{selectedPricing.price.toFixed(2)} <span className="text-sm font-normal text-gray-500">/ {selectedPricing.weight}</span>
+          ₹{safePrice.toFixed(2)} <span className="text-sm font-normal text-gray-500">/ {selectedPricing?.weight || "250g"}</span>
         </p>
       </div>
       
