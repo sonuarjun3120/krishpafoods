@@ -69,8 +69,21 @@ const ProductDetail = () => {
     );
   }
 
-  // Handle pricing - for Supabase products, pricing might be different
-  const pricing = product.pricing || [{ weight: "250g", price: product.price || 0 }];
+  // Handle pricing - ensure it's always an array
+  let pricing = [];
+  
+  if (product.pricing && Array.isArray(product.pricing)) {
+    pricing = product.pricing;
+  } else if (product.pricing && typeof product.pricing === 'object') {
+    // If pricing is stored as an object, try to convert it
+    pricing = Object.values(product.pricing);
+  } else if (product.price) {
+    // Fallback to simple price structure
+    pricing = [{ weight: "250g", price: product.price }];
+  } else {
+    // Default pricing if nothing is available
+    pricing = [{ weight: "250g", price: 0 }];
+  }
   
   if (!selectedWeight && pricing.length > 0) {
     setSelectedWeight(pricing[0].weight);
@@ -94,6 +107,22 @@ const ProductDetail = () => {
       description: `${quantity} x ${product.name} (${selectedPricing.weight}) has been added to your cart.`,
     });
   };
+
+  // Convert Supabase products to the format expected by RelatedProducts
+  const convertedRelatedProducts = relatedProducts.map(p => ({
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    image: p.image,
+    category: p.category || '',
+    pricing: Array.isArray(p.pricing) ? p.pricing : [{ weight: "250g", price: p.price || 0 }],
+    featured: p.featured || false,
+    longDescription: p.longDescription || p.description,
+    spiceLevel: p.spiceLevel || 'Medium',
+    ingredients: Array.isArray(p.ingredients) ? p.ingredients : [],
+    shelfLife: p.shelfLife || '6 months',
+    servingSuggestions: Array.isArray(p.servingSuggestions) ? p.servingSuggestions : []
+  }));
 
   return (
     <Layout>
@@ -119,7 +148,7 @@ const ProductDetail = () => {
           />
         </div>
         
-        <RelatedProducts products={relatedProducts} />
+        <RelatedProducts products={convertedRelatedProducts} />
       </div>
     </Layout>
   );
