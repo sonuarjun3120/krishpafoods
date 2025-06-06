@@ -47,6 +47,34 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
+  // Handle pricing - ensure it's always an array
+  let pricing = [];
+  
+  if (product?.pricing && Array.isArray(product.pricing)) {
+    pricing = product.pricing;
+  } else if (product?.pricing && typeof product.pricing === 'object') {
+    // If pricing is stored as an object, try to convert it
+    pricing = Object.values(product.pricing);
+  } else if (product?.price) {
+    // Fallback to simple price structure
+    pricing = [{ weight: "250g", price: product.price }];
+  } else {
+    // Default pricing if nothing is available
+    pricing = [{ weight: "250g", price: 0 }];
+  }
+  
+  // Ensure pricing is not empty and set default weight
+  if (pricing.length === 0) {
+    pricing = [{ weight: "250g", price: 0 }];
+  }
+
+  // Set default selectedWeight when pricing changes
+  useEffect(() => {
+    if (!selectedWeight && pricing.length > 0) {
+      setSelectedWeight(pricing[0].weight);
+    }
+  }, [pricing, selectedWeight]);
+
   if (loading) {
     return (
       <Layout>
@@ -67,31 +95,6 @@ const ProductDetail = () => {
         </div>
       </Layout>
     );
-  }
-
-  // Handle pricing - ensure it's always an array
-  let pricing = [];
-  
-  if (product.pricing && Array.isArray(product.pricing)) {
-    pricing = product.pricing;
-  } else if (product.pricing && typeof product.pricing === 'object') {
-    // If pricing is stored as an object, try to convert it
-    pricing = Object.values(product.pricing);
-  } else if (product.price) {
-    // Fallback to simple price structure
-    pricing = [{ weight: "250g", price: product.price }];
-  } else {
-    // Default pricing if nothing is available
-    pricing = [{ weight: "250g", price: 0 }];
-  }
-  
-  // Ensure pricing is not empty and set default weight
-  if (pricing.length === 0) {
-    pricing = [{ weight: "250g", price: 0 }];
-  }
-  
-  if (!selectedWeight && pricing.length > 0) {
-    setSelectedWeight(pricing[0].weight);
   }
 
   // Ensure selectedPricing is never undefined
@@ -160,10 +163,24 @@ const ProductDetail = () => {
     };
   });
 
+  // Ensure category matches allowed types for the main product
+  const validProductCategory = (category: string): "veg" | "nonveg" | "combo" => {
+    switch (category) {
+      case "veg":
+        return "veg";
+      case "nonveg":
+        return "nonveg";
+      case "combo":
+        return "combo";
+      default:
+        return "veg";
+    }
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <ProductBreadcrumb category={product.category || 'Products'} productName={product.name} />
+        <ProductBreadcrumb category={validProductCategory(product.category || 'veg')} productName={product.name} />
 
         <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden">
           <ProductGallery image={product.image} name={product.name} productId={product.id} />
