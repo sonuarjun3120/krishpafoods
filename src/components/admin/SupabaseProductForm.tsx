@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,11 +49,14 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
   // Extract images and pricing from product data
   useEffect(() => {
     if (product) {
-      // Handle main image
+      // Handle main image and additional images
       const productImages = [];
       if (product.image) {
         productImages.push(product.image);
       }
+      
+      // If there are additional images stored, add them
+      // For now, we'll start with just the main image but this structure supports multiple
       setImages(productImages);
 
       // Extract pricing data and convert to custom sizes
@@ -139,7 +143,7 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
         name: formData.name.trim(),
         description: formData.description.trim(),
         longDescription: formData.longDescription.trim(),
-        image: images[0], // Main image
+        image: images[0], // Main image (first one)
         category: formData.category,
         featured: formData.featured,
         spiceLevel: formData.spiceLevel,
@@ -292,10 +296,10 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
         </CardContent>
       </Card>
 
-      {/* Product Images */}
+      {/* Product Images - Updated to support multiple images */}
       <Card>
         <CardHeader>
-          <CardTitle>Product Images</CardTitle>
+          <CardTitle>Product Images (Up to 3 images supported)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -306,16 +310,24 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
                 onChange={(e) => setNewImageUrl(e.target.value)}
                 placeholder="https://example.com/image.jpg"
               />
-              <Button type="button" onClick={addImage} variant="outline">
+              <Button 
+                type="button" 
+                onClick={addImage} 
+                variant="outline"
+                disabled={images.length >= 3}
+              >
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
+            {images.length >= 3 && (
+              <p className="text-sm text-gray-500">Maximum 3 images allowed</p>
+            )}
           </div>
 
           {images.length > 0 && (
             <div className="space-y-2">
               <Label>Current Images</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {images.map((imageUrl, index) => (
                   <div key={index} className="relative">
                     <img

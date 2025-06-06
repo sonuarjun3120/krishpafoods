@@ -18,6 +18,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pricing, setPricing] = useState<any[]>([]);
   const { addToCart } = useCart();
   
   useEffect(() => {
@@ -47,26 +48,35 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
-  // Handle pricing - ensure it's always an array
-  let pricing = [];
-  
-  if (product?.pricing && Array.isArray(product.pricing)) {
-    pricing = product.pricing;
-  } else if (product?.pricing && typeof product.pricing === 'object') {
-    // If pricing is stored as an object, try to convert it
-    pricing = Object.values(product.pricing);
-  } else if (product?.price) {
-    // Fallback to simple price structure
-    pricing = [{ weight: "250g", price: product.price }];
-  } else {
-    // Default pricing if nothing is available
-    pricing = [{ weight: "250g", price: 0 }];
-  }
-  
-  // Ensure pricing is not empty and set default weight
-  if (pricing.length === 0) {
-    pricing = [{ weight: "250g", price: 0 }];
-  }
+  // Handle pricing in a separate useEffect to avoid re-render loops
+  useEffect(() => {
+    if (!product) return;
+
+    let newPricing = [];
+    
+    if (product?.pricing && Array.isArray(product.pricing)) {
+      newPricing = product.pricing;
+    } else if (product?.pricing && typeof product.pricing === 'object') {
+      // If pricing is stored as an object, try to convert it
+      newPricing = Object.entries(product.pricing).map(([weight, price]) => ({
+        weight,
+        price: Number(price) || 0
+      }));
+    } else if (product?.price) {
+      // Fallback to simple price structure
+      newPricing = [{ weight: "250g", price: product.price }];
+    } else {
+      // Default pricing if nothing is available
+      newPricing = [{ weight: "250g", price: 0 }];
+    }
+    
+    // Ensure pricing is not empty and set default weight
+    if (newPricing.length === 0) {
+      newPricing = [{ weight: "250g", price: 0 }];
+    }
+
+    setPricing(newPricing);
+  }, [product]);
 
   // Set default selectedWeight when pricing changes
   useEffect(() => {
@@ -133,19 +143,39 @@ const ProductDetail = () => {
       }
     };
 
-    // Ensure category matches allowed types
+    // Ensure category matches allowed types - handle both database format and expected format
     const validCategory = (category: string): "veg" | "nonveg" | "combo" => {
-      switch (category) {
+      const normalizedCategory = category?.toLowerCase();
+      switch (normalizedCategory) {
         case "veg":
+        case "vegetarian":
           return "veg";
         case "nonveg":
+        case "non-veg":
+        case "non-vegetarian":
           return "nonveg";
         case "combo":
+        case "combination":
           return "combo";
         default:
           return "veg";
       }
     };
+
+    // Convert pricing format
+    let convertedPricing = [];
+    if (p.pricing && Array.isArray(p.pricing)) {
+      convertedPricing = p.pricing;
+    } else if (p.pricing && typeof p.pricing === 'object') {
+      convertedPricing = Object.entries(p.pricing).map(([weight, price]) => ({
+        weight,
+        price: Number(price) || 0
+      }));
+    } else if (p.price) {
+      convertedPricing = [{ weight: "250g", price: p.price }];
+    } else {
+      convertedPricing = [{ weight: "250g", price: 0 }];
+    }
 
     return {
       id: p.id,
@@ -153,7 +183,7 @@ const ProductDetail = () => {
       description: p.description,
       image: p.image,
       category: validCategory(p.category || 'veg'),
-      pricing: Array.isArray(p.pricing) ? p.pricing : [{ weight: "250g", price: p.price || 0 }],
+      pricing: convertedPricing,
       featured: p.featured || false,
       longDescription: p.longDescription || p.description,
       spiceLevel: validSpiceLevel(p.spiceLevel || 'Medium'),
@@ -165,12 +195,17 @@ const ProductDetail = () => {
 
   // Ensure category matches allowed types for the main product
   const validProductCategory = (category: string): "veg" | "nonveg" | "combo" => {
-    switch (category) {
+    const normalizedCategory = category?.toLowerCase();
+    switch (normalizedCategory) {
       case "veg":
+      case "vegetarian":
         return "veg";
       case "nonveg":
+      case "non-veg":
+      case "non-vegetarian":
         return "nonveg";
       case "combo":
+      case "combination":
         return "combo";
       default:
         return "veg";
