@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabaseContentService } from "@/services/supabaseContentService";
 import { contentService } from "@/services/contentService";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const Home = () => {
   const { products } = useSupabaseProducts();
@@ -172,7 +173,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Products Section */}
+      {/* Featured Products Section - Updated for better horizontal scrolling */}
       <section className="bg-amber-50 py-16">
         <div className="container mx-auto px-4">
           <h2 className="font-playfair text-3xl font-bold text-primary mb-2 text-center">
@@ -181,18 +182,42 @@ const Home = () => {
           <p className="text-gray-700 mb-10 text-center max-w-2xl mx-auto">
             Handcrafted in small batches using traditional methods and the finest ingredients
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.length > 0 ? (
-              featuredProducts.map(product => (
-                <SupabaseProductCard key={product.id} product={product} />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-8">
-                <p className="text-gray-500 mb-4">No featured products available at the moment.</p>
-                <p className="text-sm text-gray-400">Add products in the admin panel and mark them as featured to display them here.</p>
-              </div>
-            )}
-          </div>
+          
+          {featuredProducts.length > 0 ? (
+            <div className="space-y-8">
+              {featuredProducts.length <= 4 ? (
+                // Standard grid for 4 or fewer products
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {featuredProducts.map(product => (
+                    <SupabaseProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                // Horizontal scrolling for more than 4 products
+                <ScrollArea className="w-full whitespace-nowrap">
+                  <div className="flex w-max space-x-6 p-4">
+                    {featuredProducts.map(product => (
+                      <div key={product.id} className="w-80 flex-shrink-0">
+                        <SupabaseProductCard product={product} />
+                      </div>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500 mb-4">No featured products available at the moment.</p>
+              <p className="text-sm text-gray-400">Add products in the admin panel and mark them as featured to display them here.</p>
+              <Link to="/admin" className="inline-block mt-4">
+                <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                  Go to Admin Panel
+                </Button>
+              </Link>
+            </div>
+          )}
+          
           <div className="text-center mt-10">
             <Link to="/shop">
               <Button className="bg-primary hover:bg-primary/90 transition-all duration-300 transform hover:scale-105">

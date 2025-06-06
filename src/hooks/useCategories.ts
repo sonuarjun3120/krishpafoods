@@ -33,28 +33,13 @@ export const useCategories = () => {
           console.log('Category change detected:', payload);
           
           if (payload.eventType === 'INSERT') {
-            // Add new category to the list
             setCategories(prev => [...prev, payload.new as Category]);
-            toast({
-              title: "New Category Added",
-              description: `${(payload.new as Category).name} has been added`,
-            });
           } else if (payload.eventType === 'UPDATE') {
-            // Update existing category
             setCategories(prev => prev.map(category => 
               category.id === payload.new.id ? payload.new as Category : category
             ));
-            toast({
-              title: "Category Updated",
-              description: `${(payload.new as Category).name} has been updated`,
-            });
           } else if (payload.eventType === 'DELETE') {
-            // Remove deleted category
             setCategories(prev => prev.filter(category => category.id !== payload.old.id));
-            toast({
-              title: "Category Deleted",
-              description: "Category has been deleted",
-            });
           }
         }
       )
@@ -68,7 +53,6 @@ export const useCategories = () => {
   const createCategory = async (categoryData: Omit<Category, 'id' | 'created_at' | 'updated_at'>) => {
     const newCategory = await supabaseContentService.createCategory(categoryData);
     if (newCategory) {
-      // Real-time will handle the UI update
       toast({
         title: "Category Created",
         description: "Category has been created successfully",
@@ -87,7 +71,6 @@ export const useCategories = () => {
   const updateCategory = async (id: string, updates: Partial<Category>) => {
     const success = await supabaseContentService.updateCategory(id, updates);
     if (success) {
-      // Real-time will handle the UI update
       toast({
         title: "Category Updated",
         description: "Category has been updated successfully",
@@ -106,7 +89,6 @@ export const useCategories = () => {
   const deleteCategory = async (id: string) => {
     const success = await supabaseContentService.deleteCategory(id);
     if (success) {
-      // Real-time will handle the UI update
       toast({
         title: "Category Deleted",
         description: "Category has been deleted successfully",

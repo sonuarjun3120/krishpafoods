@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from "react-router-dom";
 import { Salad, Beef, Package } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const Categories = () => {
   const { categories, loading } = useCategories();
@@ -40,52 +41,86 @@ const Categories = () => {
     );
   }
 
-  const [firstCategory, ...restCategories] = categories;
+  // If we have 1-3 categories, use the original grid layout
+  if (categories.length <= 3) {
+    const [firstCategory, ...restCategories] = categories;
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* First category - large display */}
-      <Link 
-        to={`/shop?category=${encodeURIComponent(firstCategory.name)}`}
-        className="relative overflow-hidden rounded-2xl group h-[400px] transition-transform hover:scale-[1.02] duration-300"
-      >
-        <img
-          src={firstCategory.image || "https://images.unsplash.com/photo-1589216532372-1c2a367900d9"}
-          alt={firstCategory.name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex flex-col justify-end p-6">
-          <div className="flex items-center gap-2 text-white mb-2">
-            {getIcon(firstCategory.icon)}
-            <h3 className="text-2xl font-playfair font-bold">{firstCategory.name}</h3>
-          </div>
-          <p className="text-white/90">{firstCategory.description}</p>
-        </div>
-      </Link>
-
-      {/* Rest of categories - grid display */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 h-[400px]">
-        {restCategories.slice(0, 2).map((category) => (
-          <Link
-            key={category.id}
-            to={`/shop?category=${encodeURIComponent(category.name)}`}
-            className="relative overflow-hidden rounded-2xl group transition-transform hover:scale-[1.02] duration-300"
-          >
-            <img
-              src={category.image || "https://images.unsplash.com/photo-1567606855340-df87e6a35b5e"}
-              alt={category.name}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex flex-col justify-end p-4">
-              <div className="flex items-center gap-2 text-white mb-1">
-                {getIcon(category.icon)}
-                <h3 className="text-xl font-playfair font-bold">{category.name}</h3>
-              </div>
-              <p className="text-white/90 text-sm">{category.description}</p>
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* First category - large display */}
+        <Link 
+          to={`/shop?category=${encodeURIComponent(firstCategory.name)}`}
+          className="relative overflow-hidden rounded-2xl group h-[400px] transition-transform hover:scale-[1.02] duration-300"
+        >
+          <img
+            src={firstCategory.image || "https://images.unsplash.com/photo-1589216532372-1c2a367900d9"}
+            alt={firstCategory.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex flex-col justify-end p-6">
+            <div className="flex items-center gap-2 text-white mb-2">
+              {getIcon(firstCategory.icon)}
+              <h3 className="text-2xl font-playfair font-bold">{firstCategory.name}</h3>
             </div>
-          </Link>
-        ))}
+            <p className="text-white/90">{firstCategory.description}</p>
+          </div>
+        </Link>
+
+        {/* Rest of categories - grid display */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 h-[400px]">
+          {restCategories.slice(0, 2).map((category) => (
+            <Link
+              key={category.id}
+              to={`/shop?category=${encodeURIComponent(category.name)}`}
+              className="relative overflow-hidden rounded-2xl group transition-transform hover:scale-[1.02] duration-300"
+            >
+              <img
+                src={category.image || "https://images.unsplash.com/photo-1567606855340-df87e6a35b5e"}
+                alt={category.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex flex-col justify-end p-4">
+                <div className="flex items-center gap-2 text-white mb-1">
+                  {getIcon(category.icon)}
+                  <h3 className="text-xl font-playfair font-bold">{category.name}</h3>
+                </div>
+                <p className="text-white/90 text-sm">{category.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
+    );
+  }
+
+  // If we have more than 3 categories, use horizontal scrolling layout
+  return (
+    <div className="space-y-4">
+      <ScrollArea className="w-full whitespace-nowrap">
+        <div className="flex w-max space-x-6 p-4">
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              to={`/shop?category=${encodeURIComponent(category.name)}`}
+              className="relative overflow-hidden rounded-2xl group transition-transform hover:scale-[1.02] duration-300 w-80 h-64 flex-shrink-0"
+            >
+              <img
+                src={category.image || "https://images.unsplash.com/photo-1567606855340-df87e6a35b5e"}
+                alt={category.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex flex-col justify-end p-4">
+                <div className="flex items-center gap-2 text-white mb-2">
+                  {getIcon(category.icon)}
+                  <h3 className="text-xl font-playfair font-bold">{category.name}</h3>
+                </div>
+                <p className="text-white/90 text-sm line-clamp-2">{category.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
     </div>
   );
 };
