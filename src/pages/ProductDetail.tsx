@@ -85,11 +85,17 @@ const ProductDetail = () => {
     pricing = [{ weight: "250g", price: 0 }];
   }
   
+  // Ensure pricing is not empty and set default weight
+  if (pricing.length === 0) {
+    pricing = [{ weight: "250g", price: 0 }];
+  }
+  
   if (!selectedWeight && pricing.length > 0) {
     setSelectedWeight(pricing[0].weight);
   }
 
-  const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0];
+  // Ensure selectedPricing is never undefined
+  const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0] || { weight: "250g", price: 0 };
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -109,20 +115,36 @@ const ProductDetail = () => {
   };
 
   // Convert Supabase products to the format expected by RelatedProducts
-  const convertedRelatedProducts = relatedProducts.map(p => ({
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    image: p.image,
-    category: p.category || '',
-    pricing: Array.isArray(p.pricing) ? p.pricing : [{ weight: "250g", price: p.price || 0 }],
-    featured: p.featured || false,
-    longDescription: p.longDescription || p.description,
-    spiceLevel: p.spiceLevel || 'Medium',
-    ingredients: Array.isArray(p.ingredients) ? p.ingredients : [],
-    shelfLife: p.shelfLife || '6 months',
-    servingSuggestions: Array.isArray(p.servingSuggestions) ? p.servingSuggestions : []
-  }));
+  const convertedRelatedProducts = relatedProducts.map(p => {
+    // Ensure spiceLevel matches allowed types
+    const validSpiceLevel = (level: string): "Medium" | "Mild" | "Hot" | "Extra Hot" => {
+      switch (level) {
+        case "Mild":
+          return "Mild";
+        case "Hot":
+          return "Hot";
+        case "Extra Hot":
+          return "Extra Hot";
+        default:
+          return "Medium";
+      }
+    };
+
+    return {
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      image: p.image,
+      category: p.category || '',
+      pricing: Array.isArray(p.pricing) ? p.pricing : [{ weight: "250g", price: p.price || 0 }],
+      featured: p.featured || false,
+      longDescription: p.longDescription || p.description,
+      spiceLevel: validSpiceLevel(p.spiceLevel || 'Medium'),
+      ingredients: Array.isArray(p.ingredients) ? p.ingredients : [],
+      shelfLife: p.shelfLife || '6 months',
+      servingSuggestions: Array.isArray(p.servingSuggestions) ? p.servingSuggestions : []
+    };
+  });
 
   return (
     <Layout>
