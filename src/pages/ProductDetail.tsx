@@ -130,12 +130,26 @@ const ProductDetail = () => {
       }
     };
 
+    // Ensure category matches allowed types
+    const validCategory = (category: string): "veg" | "nonveg" | "combo" => {
+      switch (category) {
+        case "veg":
+          return "veg";
+        case "nonveg":
+          return "nonveg";
+        case "combo":
+          return "combo";
+        default:
+          return "veg";
+      }
+    };
+
     return {
       id: p.id,
       name: p.name,
       description: p.description,
       image: p.image,
-      category: p.category || '',
+      category: validCategory(p.category || 'veg'),
       pricing: Array.isArray(p.pricing) ? p.pricing : [{ weight: "250g", price: p.price || 0 }],
       featured: p.featured || false,
       longDescription: p.longDescription || p.description,
