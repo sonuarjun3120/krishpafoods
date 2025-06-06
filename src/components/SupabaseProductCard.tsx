@@ -46,20 +46,21 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
     }
   }, [pricing, selectedWeight]);
 
-  const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0];
+  // Add safety check for selectedPricing
+  const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0] || { weight: "250g", price: 299 };
 
   const handleAddToCart = () => {
     addToCart({ 
       id: product.id, 
       name: product.name, 
       price: selectedPricing.price,
-      weight: selectedWeight,
+      weight: selectedWeight || selectedPricing.weight,
       image: product.image 
     });
     
     toast({
       title: "Added to cart",
-      description: `${product.name} (${selectedWeight}) has been added to your cart.`,
+      description: `${product.name} (${selectedWeight || selectedPricing.weight}) has been added to your cart.`,
     });
   };
 
@@ -106,7 +107,7 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
                 </SelectContent>
               </Select>
             ) : (
-              <div className="text-sm text-gray-600">{pricing[0].weight}</div>
+              <div className="text-sm text-gray-600">{selectedPricing.weight}</div>
             )}
           </div>
           <p className="font-bold text-primary whitespace-nowrap">₹{selectedPricing.price}</p>
