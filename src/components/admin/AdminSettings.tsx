@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,10 +7,10 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, CreditCard, Truck, Globe, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { adminSettingsService, AdminSettings } from '@/services/adminSettingsService';
+import { adminSettingsService, AdminSettingsData } from '@/services/adminSettingsService';
 
 export const AdminSettings = () => {
-  const [settings, setSettings] = useState<AdminSettings | null>(null);
+  const [settings, setSettings] = useState<AdminSettingsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -79,7 +78,7 @@ export const AdminSettings = () => {
     }
   };
 
-  const updateSetting = (category: keyof AdminSettings, key: string, value: any) => {
+  const updateSetting = (category: keyof AdminSettingsData, key: string, value: any) => {
     if (!settings) return;
     
     setSettings(prev => {

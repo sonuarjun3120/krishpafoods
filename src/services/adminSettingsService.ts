@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface AdminSettings {
+export interface AdminSettingsData {
   site_settings: {
     siteName: string;
     siteDescription: string;
@@ -35,7 +35,7 @@ export interface AdminSettings {
 }
 
 export const adminSettingsService = {
-  async getSettings(): Promise<AdminSettings | null> {
+  async getSettings(): Promise<AdminSettingsData | null> {
     try {
       const { data, error } = await supabase
         .from('admin_settings')
@@ -51,7 +51,7 @@ export const adminSettingsService = {
         settings[item.setting_key] = item.setting_value;
       });
 
-      return settings as AdminSettings;
+      return settings as AdminSettingsData;
     } catch (error) {
       console.error('Error in getSettings:', error);
       return null;
