@@ -215,10 +215,15 @@ const ProductDetail = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <ProductBreadcrumb category={validProductCategory(product.category || 'veg')} productName={product.name} />
+        <ProductBreadcrumb category={validProductCategory(product?.category || 'veg')} productName={product?.name || ''} />
 
         <div className="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden">
-          <ProductGallery image={product.image} name={product.name} productId={product.id} />
+          <ProductGallery 
+            image={product.image} 
+            name={product.name} 
+            productId={product.id}
+            additionalImages={product.additional_images}
+          />
           <ProductDetails
             name={product.name}
             pricing={pricing}
