@@ -55,8 +55,11 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
         productImages.push(product.image);
       }
       
-      // If there are additional images stored, add them
-      // For now, we'll start with just the main image but this structure supports multiple
+      // Add additional images if they exist
+      if (product.additional_images && Array.isArray(product.additional_images)) {
+        productImages.push(...product.additional_images);
+      }
+      
       setImages(productImages);
 
       // Extract pricing data and convert to custom sizes
@@ -144,6 +147,7 @@ export const SupabaseProductForm: React.FC<SupabaseProductFormProps> = ({ produc
         description: formData.description.trim(),
         longDescription: formData.longDescription.trim(),
         image: images[0], // Main image (first one)
+        additional_images: images.length > 1 ? images.slice(1) : [], // Additional images
         category: formData.category,
         featured: formData.featured,
         spiceLevel: formData.spiceLevel,

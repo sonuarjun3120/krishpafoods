@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Product {
@@ -6,6 +7,7 @@ export interface Product {
   description: string;
   longDescription?: string;
   image: string;
+  additional_images?: string[];
   category?: string;
   featured?: boolean;
   spiceLevel?: string;
@@ -156,6 +158,7 @@ export const supabaseContentService = {
         description: product.description,
         longDescription: product.longDescription || '',
         image: product.image,
+        additional_images: product.additional_images || [],
         category: product.category || '',
         featured: product.featured || false,
         spiceLevel: product.spiceLevel || 'Medium',

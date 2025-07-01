@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/context/CartContext";
 import { Product } from "@/services/supabaseContentService";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface SupabaseProductCardProps {
   product: Product;
@@ -17,6 +18,18 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
   const { addToCart } = useCart();
   const [selectedWeight, setSelectedWeight] = useState<string>("");
   const [isHovered, setIsHovered] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Get all images including main image and additional images
+  const getAllImages = () => {
+    const images = [product.image];
+    if (product.additional_images && Array.isArray(product.additional_images)) {
+      images.push(...product.additional_images);
+    }
+    return images.filter(img => img); // Remove any null/undefined images
+  };
+
+  const allImages = getAllImages();
   
   // Parse pricing data - it could be stored as JSON or object
   const getPricing = () => {
@@ -64,6 +77,18 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
     });
   };
 
+  const nextImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+  };
+
+  const prevImage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  };
+
   return (
     <Card 
       className="overflow-hidden transition-all duration-300 bg-white hover:shadow-lg"
@@ -72,9 +97,9 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
     >
       <CardHeader className="p-0">
         <Link to={`/product/${product.id}`}>
-          <div className="relative w-full h-48 overflow-hidden">
+          <div className="relative w-full h-48 overflow-hidden group">
             <img
-              src={product.image}
+              src={allImages[currentImageIndex]}
               alt={product.name}
               className={`w-full h-full object-cover transition-all duration-300 ${
                 isHovered ? "scale-110" : "scale-100"
@@ -83,6 +108,36 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
             <div className={`absolute inset-0 bg-black transition-opacity duration-300 ${
               isHovered ? "opacity-20" : "opacity-0"
             }`}></div>
+            
+            {/* Image navigation arrows - only show if multiple images */}
+            {allImages.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                
+                {/* Image indicators */}
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                  {allImages.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </Link>
       </CardHeader>
