@@ -8,9 +8,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useSupabaseProducts } from "@/hooks/useSupabaseProducts";
+import { useCategories } from "@/hooks/useCategories";
 
 const Shop = () => {
   const { products, loading } = useSupabaseProducts();
+  const { categories, loading: categoriesLoading } = useCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const location = useLocation();
@@ -37,7 +39,7 @@ const Shop = () => {
     navigate(-1);
   };
 
-  if (loading) {
+  if (loading || categoriesLoading) {
     return (
       <Layout>
         <div className="flex justify-center items-center py-12">
@@ -86,9 +88,11 @@ const Shop = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Veg">Veg</SelectItem>
-                  <SelectItem value="Non-Veg">Non-Veg</SelectItem>
-                  <SelectItem value="Combos">Combos</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
