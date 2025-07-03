@@ -21,7 +21,7 @@ export const useCategories = () => {
 
     // Set up real-time subscription for categories
     const channel = supabase
-      .channel('categories-realtime')
+      .channel('categories-changes')
       .on(
         'postgres_changes',
         {
