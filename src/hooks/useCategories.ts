@@ -21,7 +21,7 @@ export const useCategories = () => {
 
     // Set up real-time subscription for categories
     const channel = supabase
-      .channel('categories-changes')
+      .channel('categories-realtime')
       .on(
         'postgres_changes',
         {
@@ -33,13 +33,16 @@ export const useCategories = () => {
           console.log('Category change detected:', payload);
           
           if (payload.eventType === 'INSERT') {
-            setCategories(prev => [...prev, payload.new as Category]);
+            const newCategory = payload.new as Category;
+            setCategories(prev => [...prev, newCategory]);
           } else if (payload.eventType === 'UPDATE') {
+            const updatedCategory = payload.new as Category;
             setCategories(prev => prev.map(category => 
-              category.id === payload.new.id ? payload.new as Category : category
+              category.id === updatedCategory.id ? updatedCategory : category
             ));
           } else if (payload.eventType === 'DELETE') {
-            setCategories(prev => prev.filter(category => category.id !== payload.old.id));
+            const deletedCategory = payload.old as Category;
+            setCategories(prev => prev.filter(category => category.id !== deletedCategory.id));
           }
         }
       )
@@ -48,7 +51,7 @@ export const useCategories = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [toast]);
+  }, []);
 
   const createCategory = async (categoryData: Omit<Category, 'id' | 'created_at' | 'updated_at'>) => {
     const newCategory = await supabaseContentService.createCategory(categoryData);
