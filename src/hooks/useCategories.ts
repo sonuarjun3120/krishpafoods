@@ -31,18 +31,29 @@ export const useCategories = () => {
         },
         async (payload) => {
           console.log('Category change detected:', payload);
+          console.log('Event type:', payload.eventType);
+          console.log('Payload old:', payload.old);
+          console.log('Payload new:', payload.new);
           
           if (payload.eventType === 'INSERT') {
             const newCategory = payload.new as Category;
+            console.log('Adding new category:', newCategory);
             setCategories(prev => [...prev, newCategory]);
           } else if (payload.eventType === 'UPDATE') {
             const updatedCategory = payload.new as Category;
+            console.log('Updating category:', updatedCategory);
             setCategories(prev => prev.map(category => 
               category.id === updatedCategory.id ? updatedCategory : category
             ));
           } else if (payload.eventType === 'DELETE') {
             const deletedCategory = payload.old as Category;
-            setCategories(prev => prev.filter(category => category.id !== deletedCategory.id));
+            console.log('Deleting category:', deletedCategory);
+            console.log('Categories before delete:', categories);
+            setCategories(prev => {
+              const filtered = prev.filter(category => category.id !== deletedCategory.id);
+              console.log('Categories after delete:', filtered);
+              return filtered;
+            });
           }
         }
       )
