@@ -107,6 +107,8 @@ export type Database = {
           id: string
           items: Json
           order_notes: string | null
+          order_number: string | null
+          payment_id: string | null
           payment_method: string | null
           payment_status: string | null
           shipping_address: Json
@@ -122,6 +124,8 @@ export type Database = {
           id?: string
           items: Json
           order_notes?: string | null
+          order_number?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
           shipping_address: Json
@@ -137,6 +141,8 @@ export type Database = {
           id?: string
           items?: Json
           order_notes?: string | null
+          order_number?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
           shipping_address?: Json
