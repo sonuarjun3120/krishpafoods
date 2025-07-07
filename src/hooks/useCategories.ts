@@ -101,17 +101,38 @@ export const useCategories = () => {
   };
 
   const deleteCategory = async (id: string) => {
-    const success = await supabaseContentService.deleteCategory(id);
-    if (success) {
-      toast({
-        title: "Category Deleted",
-        description: "Category has been deleted successfully",
-      });
-      return true;
-    } else {
+    try {
+      console.log('Attempting to delete category with id:', id);
+      const success = await supabaseContentService.deleteCategory(id);
+      console.log('Delete result:', success);
+      
+      if (success) {
+        // Manually update state immediately for better UX
+        setCategories(prev => {
+          const updated = prev.filter(category => category.id !== id);
+          console.log('Updated categories after delete:', updated);
+          return updated;
+        });
+        
+        toast({
+          title: "Category Deleted",
+          description: "Category has been deleted successfully",
+        });
+        return true;
+      } else {
+        console.error('Delete operation returned false');
+        toast({
+          title: "Error",
+          description: "Failed to delete category",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Error in deleteCategory:', error);
       toast({
         title: "Error",
-        description: "Failed to delete category",
+        description: "Failed to delete category: " + (error as Error).message,
         variant: "destructive",
       });
       return false;
