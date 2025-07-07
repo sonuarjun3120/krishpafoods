@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
 import Layout from "@/components/Layout";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/context/CartContext";
 import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductGallery from "@/components/product/ProductGallery";
