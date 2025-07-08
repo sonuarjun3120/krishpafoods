@@ -8,11 +8,14 @@ import ProductBreadcrumb from "@/components/product/ProductBreadcrumb";
 import ProductGallery from "@/components/product/ProductGallery";
 import ProductDetails from "@/components/product/ProductDetails";
 import RelatedProducts from "@/components/product/RelatedProducts";
+import CustomerReviews from "@/components/product/CustomerReviews";
 import { supabaseContentService, Product } from "@/services/supabaseContentService";
+import { useNavigate } from "react-router-dom";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [selectedWeight, setSelectedWeight] = useState<string>("");
   const [product, setProduct] = useState<Product | null>(null);
@@ -110,7 +113,21 @@ const ProductDetail = () => {
   // Ensure selectedPricing is never undefined
   const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0] || { weight: "250g", price: 0 };
 
+  const validateWeightSelection = () => {
+    if (!selectedWeight || selectedWeight === "") {
+      toast({
+        title: "Please select weight",
+        description: "Please select a weight before proceeding.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleAddToCart = () => {
+    if (!validateWeightSelection()) return;
+
     for (let i = 0; i < quantity; i++) {
       addToCart({
         id: product.id,
@@ -125,6 +142,16 @@ const ProductDetail = () => {
       title: "Added to cart",
       description: `${quantity} x ${product.name} (${selectedPricing.weight}) has been added to your cart.`,
     });
+  };
+
+  const handleBuyNow = () => {
+    if (!validateWeightSelection()) return;
+    
+    // Add to cart first
+    handleAddToCart();
+    
+    // Navigate to cart/checkout page
+    navigate('/cart');
   };
 
   // Convert Supabase products to the format expected by RelatedProducts
@@ -238,9 +265,11 @@ const ProductDetail = () => {
             quantity={quantity}
             setQuantity={setQuantity}
             onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
           />
         </div>
         
+        <CustomerReviews />
         <RelatedProducts products={convertedRelatedProducts} />
       </div>
     </Layout>

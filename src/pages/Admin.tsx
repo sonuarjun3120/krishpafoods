@@ -7,6 +7,7 @@ import { ProductManagement } from '@/components/admin/ProductManagement';
 import { CategoryManagement } from '@/components/admin/CategoryManagement';
 import { OrderManagement } from '@/components/admin/OrderManagement';
 import { SalesAnalytics } from '@/components/admin/SalesAnalytics';
+import { UserManagement as UserAnalytics } from '@/components/admin/UserAnalytics';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { MediaManagement } from '@/components/admin/MediaManagement';
 import { PageContentManagement } from '@/components/admin/PageContentManagement';

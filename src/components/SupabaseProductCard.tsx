@@ -62,7 +62,21 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
   // Add safety check for selectedPricing
   const selectedPricing = pricing.find(p => p.weight === selectedWeight) || pricing[0] || { weight: "250g", price: 299 };
 
+  const validateWeightSelection = () => {
+    if (pricing.length > 1 && (!selectedWeight || selectedWeight === "")) {
+      toast({
+        title: "Please select weight",
+        description: "Please select a weight before proceeding.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleAddToCart = () => {
+    if (!validateWeightSelection()) return;
+
     addToCart({ 
       id: product.id, 
       name: product.name, 
@@ -75,6 +89,16 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
       title: "Added to cart",
       description: `${product.name} (${selectedWeight || selectedPricing.weight}) has been added to your cart.`,
     });
+  };
+
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!validateWeightSelection()) return;
+    
+    // Add to cart first
+    handleAddToCart();
   };
 
   const nextImage = (e: React.MouseEvent) => {
@@ -175,11 +199,12 @@ const SupabaseProductCard = ({ product }: SupabaseProductCardProps) => {
         >
           Add to Cart
         </Button>
-        <Link to={`/product/${product.id}`} className="w-full">
-          <Button className="w-full bg-[#8b4513] hover:bg-[#8b4513]/90 transition-all duration-300">
-            Buy Now
-          </Button>
-        </Link>
+        <Button 
+          className="w-full bg-[#8b4513] hover:bg-[#8b4513]/90 transition-all duration-300"
+          onClick={handleBuyNow}
+        >
+          Buy Now
+        </Button>
       </CardFooter>
     </Card>
   );

@@ -18,6 +18,7 @@ interface ProductDetailsProps {
   quantity: number;
   setQuantity: (quantity: number) => void;
   onAddToCart: () => void;
+  onBuyNow: () => void;
 }
 
 const ProductDetails = ({
@@ -33,7 +34,8 @@ const ProductDetails = ({
   servingSuggestions,
   quantity,
   setQuantity,
-  onAddToCart
+  onAddToCart,
+  onBuyNow
 }: ProductDetailsProps) => {
   // Add safety check for price
   const safePrice = selectedPricing?.price || 0;
@@ -131,6 +133,7 @@ const ProductDetails = ({
       
       <Button 
         className="w-full bg-amber-600 hover:bg-amber-700"
+        onClick={onBuyNow}
       >
         Buy Now
       </Button>

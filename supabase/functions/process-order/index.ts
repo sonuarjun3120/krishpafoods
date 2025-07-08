@@ -46,6 +46,65 @@ serve(async (req) => {
       throw new Error(`Error creating order: ${orderError.message}`);
     }
 
+    // Create or update user in users table
+    if (orderData.user_email || orderData.user_phone) {
+      const productIds = orderData.items.map(item => item.id);
+      
+      try {
+        // Check if user exists
+        let existingUser = null;
+        if (orderData.user_email) {
+          const { data } = await supabaseClient
+            .from("users")
+            .select("*")
+            .eq("email", orderData.user_email)
+            .single();
+          existingUser = data;
+        }
+        
+        if (!existingUser && orderData.user_phone) {
+          const { data } = await supabaseClient
+            .from("users")
+            .select("*")
+            .eq("phone", orderData.user_phone)
+            .single();
+          existingUser = data;
+        }
+
+        if (existingUser) {
+          // Update existing user
+          const currentOrders = existingUser.ordered_product_ids || [];
+          await supabaseClient
+            .from("users")
+            .update({
+              name: orderData.user_name || existingUser.name,
+              email: orderData.user_email || existingUser.email,
+              phone: orderData.user_phone || existingUser.phone,
+              ordered_product_ids: [...currentOrders, ...productIds],
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", existingUser.id);
+        } else {
+          // Create new user
+          await supabaseClient
+            .from("users")
+            .insert({
+              name: orderData.user_name,
+              email: orderData.user_email,
+              phone: orderData.user_phone,
+              ordered_product_ids: productIds
+            });
+        }
+      } catch (userError) {
+        console.error("Error creating/updating user:", userError);
+        // Don't fail the order if user creation fails
+      }
+    }
+
+    if (orderError) {
+      throw new Error(`Error creating order: ${orderError.message}`);
+    }
+
     // Create WhatsApp notification record for customer
     const customerWhatsappMessage = `Thank you for your order, ${orderData.user_name}! Your order #${order.id.substring(0, 8)} for ₹${orderData.total_amount} has been confirmed. We will update you when it ships.`;
     
