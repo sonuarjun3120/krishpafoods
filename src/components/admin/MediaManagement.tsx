@@ -1,64 +1,48 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Search, FolderPlus, Image, Video, Trash2, Download } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Upload, Search, FolderPlus, Image, Video, Trash2, Download, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface MediaItem {
-  id: string;
-  name: string;
-  type: 'image' | 'video';
-  size: string;
-  url: string;
-  uploadDate: string;
-  folder: string;
-}
-
-const mockMedia: MediaItem[] = [
-  {
-    id: '1',
-    name: 'product-garam-masala.jpg',
-    type: 'image',
-    size: '245 KB',
-    url: '/placeholder.svg',
-    uploadDate: '2024-01-15',
-    folder: 'products'
-  },
-  {
-    id: '2',
-    name: 'hero-banner.jpg',
-    type: 'image',
-    size: '1.2 MB',
-    url: '/placeholder.svg',
-    uploadDate: '2024-01-14',
-    folder: 'banners'
-  },
-  {
-    id: '3',
-    name: 'cooking-demo.mp4',
-    type: 'video',
-    size: '15.8 MB',
-    url: '/placeholder.svg',
-    uploadDate: '2024-01-13',
-    folder: 'videos'
-  },
-];
+import { mediaService, MediaItem } from '@/services/mediaService';
 
 export const MediaManagement = () => {
-  const [media, setMedia] = useState<MediaItem[]>(mockMedia);
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFolder, setSelectedFolder] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [dragActive, setDragActive] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
-  const folders = ['all', 'products', 'banners', 'videos', 'documents'];
+  const categories = ['all', 'products', 'banners', 'videos', 'general'];
+
+  useEffect(() => {
+    loadMedia();
+  }, []);
+
+  const loadMedia = async () => {
+    setLoading(true);
+    try {
+      const mediaData = await mediaService.getAllMedia();
+      setMedia(mediaData);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load media files",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredMedia = media.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFolder = selectedFolder === 'all' || item.folder === selectedFolder;
-    return matchesSearch && matchesFolder;
+    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -81,23 +65,38 @@ export const MediaManagement = () => {
     }
   }, []);
 
-  const handleFiles = (files: FileList) => {
-    Array.from(files).forEach(file => {
-      const newMedia: MediaItem = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        name: file.name,
-        type: file.type.startsWith('image/') ? 'image' : 'video',
-        size: formatFileSize(file.size),
-        url: URL.createObjectURL(file),
-        uploadDate: new Date().toISOString().split('T')[0],
-        folder: 'products'
-      };
-      setMedia(prev => [...prev, newMedia]);
-    });
+  const handleFiles = async (files: FileList) => {
+    setUploading(true);
+    let successCount = 0;
 
+    for (const file of Array.from(files)) {
+      try {
+        const category = selectedCategory === 'all' ? 'general' : selectedCategory;
+        const url = await mediaService.uploadToStorage(file, category);
+        
+        if (url) {
+          const mediaData = {
+            name: file.name,
+            url,
+            type: file.type.startsWith('image/') ? 'image' as const : 'video' as const,
+            category
+          };
+
+          const newMedia = await mediaService.createMediaRecord(mediaData);
+          if (newMedia) {
+            setMedia(prev => [newMedia, ...prev]);
+            successCount++;
+          }
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+    }
+
+    setUploading(false);
     toast({
-      title: "Files Uploaded",
-      description: `Successfully uploaded ${files.length} file(s)`,
+      title: "Upload Complete",
+      description: `Successfully uploaded ${successCount} of ${files.length} file(s)`,
     });
   };
 
@@ -109,11 +108,30 @@ export const MediaManagement = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
-  const handleDelete = (id: string) => {
-    setMedia(media.filter(item => item.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      const success = await mediaService.deleteMedia(id);
+      if (success) {
+        setMedia(media.filter(item => item.id !== id));
+        toast({
+          title: "File Deleted",
+          description: "Media file has been removed",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete media file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const copyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
     toast({
-      title: "File Deleted",
-      description: "Media file has been removed",
+      title: "URL Copied",
+      description: "Media URL copied to clipboard",
     });
   };
 
@@ -122,13 +140,21 @@ export const MediaManagement = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Media Management</h1>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <FolderPlus className="h-4 w-4 mr-2" />
-            New Folder
-          </Button>
-          <Button>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map(category => (
+                <SelectItem key={category} value={category} className="capitalize">
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button disabled={uploading}>
             <Upload className="h-4 w-4 mr-2" />
-            Upload Media
+            {uploading ? 'Uploading...' : 'Upload Media'}
           </Button>
         </div>
       </div>
@@ -166,15 +192,15 @@ export const MediaManagement = () => {
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex gap-2 flex-wrap">
-              {folders.map(folder => (
+              {categories.map(category => (
                 <Button
-                  key={folder}
-                  variant={selectedFolder === folder ? 'default' : 'outline'}
+                  key={category}
+                  variant={selectedCategory === category ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setSelectedFolder(folder)}
+                  onClick={() => setSelectedCategory(category)}
                   className="capitalize"
                 >
-                  {folder}
+                  {category}
                 </Button>
               ))}
             </div>
@@ -190,8 +216,13 @@ export const MediaManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {filteredMedia.map((item) => (
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {filteredMedia.map((item) => (
               <div key={item.id} className="group relative border rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                 <div className="aspect-square bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                   {item.type === 'image' ? (
@@ -212,28 +243,36 @@ export const MediaManagement = () => {
                   <h4 className="text-sm font-medium truncate" title={item.name}>
                     {item.name}
                   </h4>
-                  <p className="text-xs text-gray-500">{item.size}</p>
-                  <p className="text-xs text-gray-400">{item.uploadDate}</p>
+                  <p className="text-xs text-gray-500 capitalize">{item.category}</p>
+                  <p className="text-xs text-gray-400">{new Date(item.created_at).toLocaleDateString()}</p>
                 </div>
 
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex gap-1">
-                    <Button variant="secondary" size="sm" className="h-6 w-6 p-0">
-                      <Download className="h-3 w-3" />
+                  <div className="flex gap-1 flex-col">
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="h-6 w-6 p-0" 
+                      onClick={() => copyUrl(item.url)}
+                      title="Copy URL"
+                    >
+                      <Copy className="h-3 w-3" />
                     </Button>
                     <Button
                       variant="secondary"
                       size="sm"
                       className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
                       onClick={() => handleDelete(item.id)}
+                      title="Delete"
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

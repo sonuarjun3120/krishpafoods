@@ -68,6 +68,39 @@ export type Database = {
         }
         Relationships: []
       }
+      media: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+          type: string
+          updated_at: string
+          uploaded_by: string | null
+          url: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          type: string
+          updated_at?: string
+          uploaded_by?: string | null
+          url: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -187,6 +220,36 @@ export type Database = {
           otp_code?: string
           user_id?: string
           verified?: boolean | null
+        }
+        Relationships: []
+      }
+      pages: {
+        Row: {
+          content_blocks: Json | null
+          created_at: string
+          id: string
+          slug: string
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content_blocks?: Json | null
+          created_at?: string
+          id?: string
+          slug: string
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content_blocks?: Json | null
+          created_at?: string
+          id?: string
+          slug?: string
+          status?: string | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

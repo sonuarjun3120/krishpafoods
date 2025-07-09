@@ -25,6 +25,41 @@ export const AdminSettings = () => {
       const data = await adminSettingsService.getSettings();
       if (data) {
         setSettings(data);
+      } else {
+        // If no settings found, initialize with default values
+        const defaultSettings: AdminSettingsData = {
+          site_settings: {
+            siteName: "Krishnaveni Pickles",
+            siteDescription: "Authentic Telugu pickles and traditional preserves",
+            contactEmail: "admin@krishnavenicurries.com",
+            currency: "INR"
+          },
+          payment_settings: {
+            stripeEnabled: false,
+            paypalEnabled: false,
+            razorpayEnabled: true
+          },
+          shipping_settings: {
+            freeShippingThreshold: 500,
+            domesticShipping: 50,
+            internationalShipping: 200,
+            shippingZones: ["India", "USA", "UK"]
+          },
+          tax_settings: {
+            taxEnabled: true,
+            taxRate: 18,
+            taxIncluded: false
+          },
+          notification_settings: {
+            emailNotifications: true,
+            smsNotifications: false,
+            lowStockAlerts: true,
+            newOrderAlerts: true,
+            notificationEmail: "admin@krishnavenicurries.com",
+            notificationPhone: ""
+          }
+        };
+        setSettings(defaultSettings);
       }
     } catch (error) {
       console.error('Error loading settings:', error);

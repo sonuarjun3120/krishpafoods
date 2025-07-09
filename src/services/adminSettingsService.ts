@@ -51,7 +51,8 @@ export const adminSettingsService = {
         settings[item.setting_key] = item.setting_value;
       });
 
-      return settings as AdminSettingsData;
+      // Return settings with proper structure, or null if no data
+      return data && data.length > 0 ? settings as AdminSettingsData : null;
     } catch (error) {
       console.error('Error in getSettings:', error);
       return null;
@@ -62,8 +63,10 @@ export const adminSettingsService = {
     try {
       const { error } = await supabase
         .from('admin_settings')
-        .update({ setting_value: settingValue })
-        .eq('setting_key', settingKey);
+        .upsert({ 
+          setting_key: settingKey,
+          setting_value: settingValue 
+        });
 
       if (error) {
         console.error('Error updating admin setting:', error);
