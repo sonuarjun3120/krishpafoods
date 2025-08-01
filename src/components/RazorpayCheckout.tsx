@@ -51,7 +51,7 @@ const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
 
     try {
       const options = {
-        key: "rzp_test_YOUR_ACTUAL_TEST_KEY", // Replace with your actual Razorpay test key
+        key: "rzp_live_QNd5fsFcCIFHmr", // Live Razorpay key
         amount: orderData.amount * 100, // Amount in paise
         currency: "INR",
         name: "Krishpa Homemade Pickles",
