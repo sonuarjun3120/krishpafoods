@@ -122,23 +122,6 @@ export const verifyRazorpayPayment = async (paymentData: {
 export const getPaymentMethodOptions = () => {
   return [
     {
-      id: "upi",
-      name: "UPI Payment",
-      description: "Pay using any UPI app",
-      icon: "QrCode",
-      iconBgClass: "bg-purple-100",
-      iconColorClass: "text-purple-600",
-      image: "/upi-india-logo.png"
-    },
-    {
-      id: "bank",
-      name: "Bank Transfer",
-      description: "Direct bank deposit",
-      icon: "CreditCard",
-      iconBgClass: "bg-blue-100",
-      iconColorClass: "text-blue-600"
-    },
-    {
       id: "razorpay",
       name: "Razorpay",
       description: "Pay with card, UPI, or wallet via Razorpay",
