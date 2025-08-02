@@ -19,7 +19,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
     
-    const { action, orderId, paymentId, signature, razorpayOrderId } = await req.json();
+    const { action, orderId, paymentId, signature, razorpayOrderId, orderData } = await req.json();
     
     // Initialize Razorpay key variables
     const key_id = Deno.env.get("RAZORPAY_KEY_ID") ?? "";
@@ -33,7 +33,6 @@ serve(async (req) => {
     const auth = btoa(`${key_id}:${key_secret}`);
 
     if (action === "create_order") {
-      const { orderData } = await req.json();
       
       if (!orderData || !orderData.amount) {
         throw new Error("Missing order information");
