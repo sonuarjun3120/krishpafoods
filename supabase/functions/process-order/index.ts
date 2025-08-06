@@ -188,12 +188,20 @@ serve(async (req) => {
         message: emailBody
       });
 
-    // In a production environment, you would call WhatsApp and Email APIs here
-    // For now, we just simulate success
+    // Process notifications immediately
     console.log(`Order created: ${order.id}`);
     console.log(`WhatsApp message queued for customer: ${orderData.user_phone}`);
-    console.log(`WhatsApp message queued for store owner with delivery details`);
-    console.log(`Email notification queued for store owner`);
+    console.log(`WhatsApp message queued for store owner: 9347445411`);
+    console.log(`Email notification queued for: krishpafoods@gmail.com`);
+
+    // Trigger notification processing
+    fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/process-notifications`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        "Content-Type": "application/json"
+      }
+    }).catch(error => console.error("Error triggering notifications:", error));
 
     return new Response(
       JSON.stringify({

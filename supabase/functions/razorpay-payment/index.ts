@@ -182,6 +182,15 @@ serve(async (req) => {
             message: emailBody
           });
 
+        // Trigger notification processing for payment confirmation
+        fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/process-notifications`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+            "Content-Type": "application/json"
+          }
+        }).catch(error => console.error("Error triggering notifications:", error));
+
         return new Response(
           JSON.stringify({ 
             success: true, 
