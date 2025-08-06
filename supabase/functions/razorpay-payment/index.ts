@@ -124,12 +124,14 @@ serve(async (req) => {
 
         // Store owner WhatsApp notification
         const storeOwnerWhatsappMessage = `
-          New paid order #${order.id.substring(0, 8)}
+          ✅ Payment Confirmed! Order #${order.id.substring(0, 8)}
           
           Customer: ${order.user_name}
           Phone: ${order.user_phone}
           Payment: Razorpay (₹${order.total_amount})
           Payment ID: ${paymentId}
+          
+          Order is confirmed and ready for processing!
         `;
         
         await supabaseClient
@@ -137,9 +139,47 @@ serve(async (req) => {
           .insert({
             order_id: order.id,
             type: "whatsapp",
-            recipient: "owner",
+            recipient: "9347445411",
             status: "pending", 
             message: storeOwnerWhatsappMessage
+          });
+
+        // Store owner SMS notification
+        await supabaseClient
+          .from("notifications")
+          .insert({
+            order_id: order.id,
+            type: "sms",
+            recipient: "9347445411",
+            status: "pending", 
+            message: `Payment Confirmed! Order #${order.id.substring(0, 8)} - ${order.user_name} - ₹${order.total_amount} - Payment ID: ${paymentId}`
+          });
+
+        // Store owner email notification
+        const emailSubject = `Payment Confirmed - Order #${order.id.substring(0, 8)}`;
+        const emailBody = `
+          Payment has been confirmed for order:
+          
+          Order ID: ${order.id}
+          Customer: ${order.user_name}
+          Phone: ${order.user_phone}
+          Email: ${order.user_email || 'Not provided'}
+          Amount: ₹${order.total_amount}
+          Payment Method: Razorpay
+          Payment ID: ${paymentId}
+          Razorpay Order ID: ${razorpayOrderId}
+          
+          The order is now confirmed and ready for processing.
+        `;
+        
+        await supabaseClient
+          .from("notifications")
+          .insert({
+            order_id: order.id,
+            type: "email",
+            recipient: "krishpafoods@gmail.com",
+            status: "pending", 
+            message: emailBody
           });
 
         return new Response(

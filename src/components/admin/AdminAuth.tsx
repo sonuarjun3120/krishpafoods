@@ -21,7 +21,7 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin }) => {
 
     // Simulate authentication - replace with real auth logic
     setTimeout(() => {
-      if (email === 'admin@example.com' && password === 'admin123') {
+      if (email === 'sonuarjun3120@gmail.com' && password === 'Sonu@312005') {
         onLogin();
         toast({
           title: "Login Successful",
@@ -73,7 +73,7 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin }) => {
             </Button>
           </form>
           <div className="mt-4 text-sm text-gray-500 text-center">
-            Demo credentials: admin@example.com / admin123
+            Admin credentials: sonuarjun3120@gmail.com / Sonu@312005
           </div>
         </CardContent>
       </Card>

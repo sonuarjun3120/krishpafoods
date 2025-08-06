@@ -143,9 +143,20 @@ serve(async (req) => {
       .insert({
         order_id: order.id,
         type: "whatsapp",
-        recipient: "owner",
+        recipient: "9347445411",
         status: "pending", 
         message: storeOwnerWhatsappMessage
+      });
+
+    // Create SMS notification for store owner
+    await supabaseClient
+      .from("notifications")
+      .insert({
+        order_id: order.id,
+        type: "sms",
+        recipient: "9347445411",
+        status: "pending", 
+        message: `New Order #${order.id.substring(0, 8)} - ${orderData.user_name} - ₹${orderData.total_amount}`
       });
 
     // Create email notification record
@@ -172,7 +183,7 @@ serve(async (req) => {
       .insert({
         order_id: order.id,
         type: "email",
-        recipient: "owner",
+        recipient: "krishpafoods@gmail.com",
         status: "pending", 
         message: emailBody
       });
