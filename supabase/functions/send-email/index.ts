@@ -33,7 +33,7 @@ serve(async (req) => {
     console.log(`Sending email to: ${to}, Subject: ${subject}`);
 
     const emailResponse = await resend.emails.send({
-      from: "Krishpa Foods <notifications@resend.dev>",
+      from: "Krishpa Foods <onboarding@resend.dev>",
       to: [to],
       subject: subject,
       html: html,
