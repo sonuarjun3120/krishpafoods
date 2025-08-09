@@ -183,7 +183,7 @@ serve(async (req) => {
       .insert({
         order_id: order.id,
         type: "email",
-        recipient: "krishpaffods@gmail.com",
+        recipient: "krishpafoods@gmail.com",
         status: "pending", 
         message: emailBody
       });
