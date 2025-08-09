@@ -19,6 +19,12 @@ interface ProductCardProps {
 const ProductCard = ({ id, name, pricing, description, image }: ProductCardProps) => {
   const { toast } = useToast();
   const { addToCart } = useCart();
+  
+  // Safety check for pricing array
+  if (!pricing || pricing.length === 0) {
+    return null; // Don't render if no pricing data
+  }
+  
   const [selectedWeight, setSelectedWeight] = useState<string>(pricing[0].weight);
   const [isHovered, setIsHovered] = useState(false);
   
