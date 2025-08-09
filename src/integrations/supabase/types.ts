@@ -107,6 +107,7 @@ export type Database = {
           id: string
           message: string | null
           order_id: string
+          recipient: string | null
           status: string
           type: string
           updated_at: string
@@ -116,6 +117,7 @@ export type Database = {
           id?: string
           message?: string | null
           order_id: string
+          recipient?: string | null
           status?: string
           type: string
           updated_at?: string
@@ -125,6 +127,7 @@ export type Database = {
           id?: string
           message?: string | null
           order_id?: string
+          recipient?: string | null
           status?: string
           type?: string
           updated_at?: string
