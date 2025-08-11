@@ -459,7 +459,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      format_order_summary: {
+        Args: { order_row: Database["public"]["Tables"]["orders"]["Row"] }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
