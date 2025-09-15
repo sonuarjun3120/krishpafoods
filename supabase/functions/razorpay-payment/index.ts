@@ -98,9 +98,11 @@ serve(async (req) => {
         const { error: updateError } = await supabaseClient
           .from("orders")
           .update({ 
-            status: "confirmed",
+            status: "processing",
+            payment_status: "completed",
             razorpay_payment_id: paymentId,
-            razorpay_order_id: razorpayOrderId
+            razorpay_order_id: razorpayOrderId,
+            updated_at: new Date().toISOString()
           })
           .eq("id", orderId);
 

@@ -13,6 +13,9 @@ export interface Order {
   payment_status?: string;
   payment_method?: string;
   order_notes?: string;
+  razorpay_payment_id?: string;
+  razorpay_order_id?: string;
+  order_number?: string;
   items: any[];
   shipping_address: any;
   created_at: string;

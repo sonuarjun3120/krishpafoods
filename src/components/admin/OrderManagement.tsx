@@ -115,8 +115,9 @@ export const OrderManagement = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Order ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Customer Details</TableHead>
+                  <TableHead>Shipping Address</TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Items</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
@@ -124,46 +125,104 @@ export const OrderManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">#{order.id.slice(0, 8)}</TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{order.user_name}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">{order.user_email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell>{Array.isArray(order.items) ? order.items.length : 0}</TableCell>
-                    <TableCell>₹{Number(order.total_amount).toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Select
-                        value={order.status}
-                        onValueChange={(value) => handleStatusChange(order.id, value as Order['status'])}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue>
-                            <Badge variant={getStatusVariant(order.status)} className={getStatusColor(order.status)}>
-                              {order.status}
-                            </Badge>
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="processing">Processing</SelectItem>
-                          <SelectItem value="shipped">Shipped</SelectItem>
-                          <SelectItem value="delivered">Delivered</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredOrders.map((order) => {
+                  const shippingAddress = order.shipping_address || {};
+                  return (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-medium">
+                        <div>
+                          <div>#{order.id.slice(0, 8)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{order.user_name}</div>
+                          <div className="text-sm text-muted-foreground">{order.user_email || 'No email'}</div>
+                          <div className="text-sm text-muted-foreground">{order.user_phone}</div>
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="text-sm max-w-48">
+                          <div>{shippingAddress.streetAddress || shippingAddress.address}</div>
+                          <div>{shippingAddress.city}, {shippingAddress.state}</div>
+                          <div>{shippingAddress.pincode || shippingAddress.zipCode}</div>
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium">
+                            {order.payment_method?.toUpperCase() || 'UPI'}
+                          </div>
+                          <Badge 
+                            variant={order.payment_status === 'completed' ? 'default' : 'secondary'}
+                            className={order.payment_status === 'completed' ? 'bg-green-100 text-green-800' : ''}
+                          >
+                            {order.payment_status === 'completed' ? 'Paid' : 'Pending'}
+                          </Badge>
+                          {order.razorpay_payment_id && (
+                            <div className="text-xs text-muted-foreground">
+                              ID: {order.razorpay_payment_id.slice(0, 10)}...
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium">
+                            {Array.isArray(order.items) ? order.items.length : 0} items
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {Array.isArray(order.items) && order.items.slice(0, 2).map((item: any, index: number) => (
+                              <div key={index}>{item.quantity}x {item.name}</div>
+                            ))}
+                            {Array.isArray(order.items) && order.items.length > 2 && (
+                              <div>+{order.items.length - 2} more</div>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell className="font-medium">
+                        ₹{Number(order.total_amount).toFixed(2)}
+                      </TableCell>
+                      
+                      <TableCell>
+                        <Select
+                          value={order.status}
+                          onValueChange={(value) => handleStatusChange(order.id, value as Order['status'])}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue>
+                              <Badge variant={getStatusVariant(order.status)} className={getStatusColor(order.status)}>
+                                {order.status}
+                              </Badge>
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="processing">Processing</SelectItem>
+                            <SelectItem value="shipped">Shipped</SelectItem>
+                            <SelectItem value="delivered">Delivered</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
