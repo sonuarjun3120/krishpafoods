@@ -459,6 +459,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_otps: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       format_order_summary: {
         Args: { order_row: Database["public"]["Tables"]["orders"]["Row"] }
         Returns: string
