@@ -14,9 +14,10 @@ const testimonials: Testimonial[] = [];
 // Function to fetch testimonials from Supabase
 export const fetchTestimonials = async (): Promise<Testimonial[]> => {
   try {
+    // Explicitly select columns, excluding user_email for privacy
     const { data, error } = await supabase
       .from('testimonials')
-      .select('*')
+      .select('id, name, location, quote')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
