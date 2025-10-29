@@ -19,11 +19,35 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
     );
     
-    const { phone } = await req.json();
+    const { phone, otp } = await req.json();
     
     if (!phone) {
       throw new Error("Phone number is required");
     }
+
+    if (!otp) {
+      throw new Error("OTP verification is required to access orders");
+    }
+
+    // Verify OTP before returning orders
+    const { data: otpData, error: otpError } = await supabaseClient
+      .from("otp_verifications")
+      .select("*")
+      .eq("email", phone) // Using email field for phone
+      .eq("otp_code", otp)
+      .eq("verified", false)
+      .gt("expires_at", new Date().toISOString())
+      .single();
+
+    if (otpError || !otpData) {
+      throw new Error("Invalid or expired OTP");
+    }
+
+    // Mark OTP as verified
+    await supabaseClient
+      .from("otp_verifications")
+      .update({ verified: true })
+      .eq("id", otpData.id);
 
     // Query orders for the provided phone number
     const { data: orders, error } = await supabaseClient

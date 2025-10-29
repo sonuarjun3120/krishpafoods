@@ -29,12 +29,12 @@ export type AdminSection =
 
 const Admin = () => {
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  if (!isAuthenticated) {
-    return <AdminAuth onLogin={() => setIsAuthenticated(true)} />;
+  if (!session) {
+    return <AdminAuth onLogin={(session) => setSession(session)} />;
   }
 
   const renderContent = () => {
@@ -78,7 +78,7 @@ const Admin = () => {
           <Header
             isDarkMode={isDarkMode}
             onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-            onLogout={() => setIsAuthenticated(false)}
+            onLogout={() => setSession(null)}
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
           />

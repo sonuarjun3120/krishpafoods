@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminAuthProps {
-  onLogin: () => void;
+  onLogin: (session: any) => void;
 }
 
 export const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin }) => {
@@ -19,23 +20,42 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin }) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate authentication - replace with real auth logic
-    setTimeout(() => {
-      if (email === 'sonuarjun3120@gmail.com' && password === 'Sonu@312005') {
-        onLogin();
-        toast({
-          title: "Login Successful",
-          description: "Welcome to the admin dashboard",
-        });
-      } else {
-        toast({
-          title: "Login Failed",
-          description: "Invalid credentials",
-          variant: "destructive",
-        });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      // Check if user has admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .eq('role', 'admin')
+        .single();
+
+      if (roleError || !roleData) {
+        await supabase.auth.signOut();
+        throw new Error('You do not have admin privileges');
       }
+
+      toast({
+        title: "Login Successful",
+        description: "Welcome to the admin dashboard",
+      });
+      
+      onLogin(data.session);
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message || "Invalid credentials",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -53,6 +73,7 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
             <div>
@@ -62,6 +83,7 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
               />
             </div>
             <Button
@@ -72,9 +94,6 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin }) => {
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          <div className="mt-4 text-sm text-gray-500 text-center">
-            Admin credentials: sonuarjun3120@gmail.com / Sonu@312005
-          </div>
         </CardContent>
       </Card>
     </div>

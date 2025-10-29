@@ -6,6 +6,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { addTestimonial } from "@/data/testimonials";
+import { z } from 'zod';
+
+const reviewSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(2, { message: "Name must be at least 2 characters" })
+    .max(100, { message: "Name must be less than 100 characters" }),
+  location: z.string()
+    .trim()
+    .min(2, { message: "Location must be at least 2 characters" })
+    .max(100, { message: "Location must be less than 100 characters" }),
+  email: z.string()
+    .trim()
+    .email({ message: "Invalid email address" })
+    .max(255, { message: "Email must be less than 255 characters" })
+    .optional()
+    .or(z.literal('')),
+  quote: z.string()
+    .trim()
+    .min(10, { message: "Review must be at least 10 characters" })
+    .max(1000, { message: "Review must be less than 1000 characters" })
+});
 
 const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) => {
   const { toast } = useToast();
@@ -27,20 +49,23 @@ const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) =
     setIsSubmitting(true);
     
     try {
+      // Validate input
+      const validatedData = reviewSchema.parse(formData);
+      
       // Store user email in localStorage to identify their reviews
-      if (formData.email) {
-        localStorage.setItem('userEmail', formData.email);
+      if (validatedData.email) {
+        localStorage.setItem('userEmail', validatedData.email);
       }
       
-      // Add to Supabase
+      // Add to Supabase with validated data
       const { data, error } = await supabase
         .from('testimonials')
         .insert([
           { 
-            name: formData.name, 
-            location: formData.location, 
-            quote: formData.quote,
-            user_email: formData.email || null
+            name: validatedData.name, 
+            location: validatedData.location, 
+            quote: validatedData.quote,
+            user_email: validatedData.email || null
           }
         ])
         .select();
@@ -70,12 +95,21 @@ const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) =
         onReviewSubmitted();
       }
     } catch (error) {
-      console.error('Error submitting review:', error);
-      toast({
-        title: "Error",
-        description: "There was a problem submitting your review. Please try again.",
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        toast({
+          title: "Validation Error",
+          description: firstError.message,
+          variant: "destructive",
+        });
+      } else {
+        console.error('Error submitting review:', error);
+        toast({
+          title: "Error",
+          description: "There was a problem submitting your review. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -131,7 +165,9 @@ const ReviewForm = ({ onReviewSubmitted }: { onReviewSubmitted?: () => void }) =
             required
             placeholder="Share your experience with our products..."
             rows={4}
+            maxLength={1000}
           />
+          <p className="text-xs text-gray-500 mt-1">{formData.quote.length}/1000 characters</p>
         </div>
         
         <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isSubmitting}>

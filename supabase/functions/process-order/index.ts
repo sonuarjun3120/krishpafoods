@@ -105,87 +105,45 @@ serve(async (req) => {
       throw new Error(`Error creating order: ${orderError.message}`);
     }
 
-    // Create WhatsApp notification record for customer
-    const customerWhatsappMessage = `Thank you for your order, ${orderData.user_name}! Your order #${order.id.substring(0, 8)} for ₹${orderData.total_amount} has been confirmed. We will update you when it ships.`;
-    
+    // Store only order_id reference in notifications - details fetched on-demand
     await supabaseClient
       .from("notifications")
       .insert({
         order_id: order.id,
         type: "whatsapp",
-        recipient: "customer",
-        status: "pending", 
-        message: customerWhatsappMessage
+        recipient: orderData.user_phone,
+        status: "pending",
+        message: null // Will be populated when notification is processed
       });
 
-    // Create WhatsApp notification for store owner with delivery details
-    const formattedAddress = `${orderData.shipping_address.streetAddress || orderData.shipping_address.address}, 
-    ${orderData.shipping_address.city}, ${orderData.shipping_address.state}, 
-    ${orderData.shipping_address.pincode || orderData.shipping_address.zipCode}`;
-
-    const storeOwnerWhatsappMessage = `
-      New Order #${order.id.substring(0, 8)}
-      
-      Customer: ${orderData.user_name}
-      Phone: ${orderData.user_phone}
-      Amount: ₹${orderData.total_amount}
-      Payment Method: ${orderData.payment_method || "upi"}
-      
-      Shipping to:
-      ${formattedAddress}
-      
-      Items:
-      ${orderData.items.map(item => `${item.quantity}x ${item.name} (${item.weight}) - ₹${item.price * item.quantity}`).join('\n')}
-    `;
-    
     await supabaseClient
       .from("notifications")
       .insert({
         order_id: order.id,
         type: "whatsapp",
         recipient: "9347445411",
-        status: "pending", 
-        message: storeOwnerWhatsappMessage
+        status: "pending",
+        message: null // Will be populated when notification is processed
       });
 
-    // Create SMS notification for store owner
     await supabaseClient
       .from("notifications")
       .insert({
         order_id: order.id,
         type: "sms",
         recipient: "9347445411",
-        status: "pending", 
-        message: `New Order #${order.id.substring(0, 8)} - ${orderData.user_name} - ₹${orderData.total_amount}`
+        status: "pending",
+        message: null // Will be populated when notification is processed
       });
 
-    // Create email notification record
-    const emailSubject = `New Order #${order.id.substring(0, 8)} Received`;
-    const emailBody = `
-      New order received:
-      
-      Order ID: ${order.id}
-      Customer: ${orderData.user_name}
-      Phone: ${orderData.user_phone}
-      Email: ${orderData.user_email || 'Not provided'}
-      Amount: ₹${orderData.total_amount}
-      Payment Method: ${orderData.payment_method || "upi"}
-      
-      Shipping Address:
-      ${JSON.stringify(orderData.shipping_address, null, 2)}
-      
-      Items:
-      ${JSON.stringify(orderData.items, null, 2)}
-    `;
-    
     await supabaseClient
       .from("notifications")
       .insert({
         order_id: order.id,
         type: "email",
         recipient: "krishpafoods@gmail.com",
-        status: "pending", 
-        message: emailBody
+        status: "pending",
+        message: null // Will be populated when notification is processed
       });
 
     // Process notifications immediately
