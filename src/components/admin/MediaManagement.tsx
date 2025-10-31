@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, Search, FolderPlus, Image, Video, Trash2, Download, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useRealtimeMedia } from '@/hooks/useRealtimeMedia';
 import { mediaService, MediaItem } from '@/services/mediaService';
 
 export const MediaManagement = () => {
-  const [media, setMedia] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { media: realtimeMedia, loading } = useRealtimeMedia();
+  const [media, setMedia] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [dragActive, setDragActive] = useState(false);
@@ -20,24 +21,8 @@ export const MediaManagement = () => {
   const categories = ['all', 'products', 'banners', 'videos', 'general'];
 
   useEffect(() => {
-    loadMedia();
-  }, []);
-
-  const loadMedia = async () => {
-    setLoading(true);
-    try {
-      const mediaData = await mediaService.getAllMedia();
-      setMedia(mediaData);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load media files",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    setMedia(realtimeMedia as any[]);
+  }, [realtimeMedia]);
 
   const filteredMedia = media.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());

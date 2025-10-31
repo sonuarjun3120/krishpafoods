@@ -6,36 +6,33 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Search, Download, Eye, User as UserIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { userService, User } from '@/services/userService';
+import { useRealtimeUsers, User } from '@/hooks/useRealtimeUsers';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const UserManagement = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { users, loading } = useRealtimeUsers();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
+  const [userAnalytics, setUserAnalytics] = useState<any>(null);
   const { toast } = useToast();
 
+  // Fetch user analytics when viewing user details
   useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const userData = await userService.getAllUsers();
-      setUsers(userData);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch users",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    if (selectedUser?.email) {
+      fetchUserAnalytics(selectedUser.email);
     }
+  }, [selectedUser]);
+
+  const fetchUserAnalytics = async (email: string) => {
+    const { data } = await supabase
+      .from('user_analytics')
+      .select('*')
+      .eq('user_email', email)
+      .single();
+    
+    setUserAnalytics(data);
   };
 
   const filteredUsers = users.filter(user =>
@@ -187,9 +184,11 @@ export const UserManagement = () => {
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white">Activity Summary</h3>
                   <div className="mt-2 space-y-2 text-sm">
-                    <div><span className="font-medium">Total Orders:</span> {selectedUser.ordered_product_ids?.length || 0}</div>
+                    <div><span className="font-medium">Total Orders:</span> {userAnalytics?.total_orders || 0}</div>
+                    <div><span className="font-medium">Total Spent:</span> ₹{userAnalytics?.total_spent || 0}</div>
+                    <div><span className="font-medium">Average Order Value:</span> ₹{userAnalytics?.average_order_value || 0}</div>
+                    <div><span className="font-medium">Last Order:</span> {userAnalytics?.last_order_date ? new Date(userAnalytics.last_order_date).toLocaleDateString() : 'N/A'}</div>
                     <div><span className="font-medium">Total Reviews:</span> {selectedUser.reviewed_product_ids?.length || 0}</div>
-                    <div><span className="font-medium">Last Update:</span> {new Date(selectedUser.updated_at || '').toLocaleDateString()}</div>
                   </div>
                 </div>
               </div>

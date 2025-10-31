@@ -6,14 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Eye, Download } from 'lucide-react';
-import { useSupabaseOrders, Order } from '@/hooks/useSupabaseOrders';
+import { Search, Eye, Download, Truck } from 'lucide-react';
+import { useRealtimeOrders, Order } from '@/hooks/useRealtimeOrders';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export const OrderManagement = () => {
-  const { orders, loading, updateOrderStatus } = useSupabaseOrders();
+  const { orders, loading } = useRealtimeOrders();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const { toast } = useToast();
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -25,8 +32,24 @@ export const OrderManagement = () => {
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
-    await updateOrderStatus(orderId, newStatus);
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('id', orderId);
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update order status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order);
+    setShowOrderDialog(true);
   };
 
   const getStatusVariant = (status: Order['status']) => {
@@ -216,7 +239,7 @@ export const OrderManagement = () => {
                       </TableCell>
                       
                       <TableCell>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -228,6 +251,108 @@ export const OrderManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Order Details Dialog */}
+      <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order Details - #{selectedOrder?.order_number || 'N/A'}</DialogTitle>
+          </DialogHeader>
+          {selectedOrder && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Customer Information</Label>
+                  <div className="mt-2 space-y-1 text-sm">
+                    <div><strong>Name:</strong> {selectedOrder.user_name}</div>
+                    <div><strong>Email:</strong> {selectedOrder.user_email || 'N/A'}</div>
+                    <div><strong>Phone:</strong> {selectedOrder.user_phone}</div>
+                  </div>
+                </div>
+                <div>
+                  <Label>Order Information</Label>
+                  <div className="mt-2 space-y-1 text-sm">
+                    <div><strong>Order Date:</strong> {new Date(selectedOrder.created_at).toLocaleString()}</div>
+                    <div><strong>Status:</strong> <Badge>{selectedOrder.status}</Badge></div>
+                    <div><strong>Payment:</strong> <Badge>{selectedOrder.payment_status}</Badge></div>
+                    <div><strong>Method:</strong> {selectedOrder.payment_method?.toUpperCase()}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Shipping Address</Label>
+                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded text-sm">
+                  {selectedOrder.shipping_address?.streetAddress || selectedOrder.shipping_address?.address}<br />
+                  {selectedOrder.shipping_address?.city}, {selectedOrder.shipping_address?.state} {selectedOrder.shipping_address?.pincode || selectedOrder.shipping_address?.zipCode}
+                </div>
+              </div>
+
+              <div>
+                <Label>Delivery Tracking</Label>
+                <div className="mt-2 grid grid-cols-2 gap-4">
+                  <Input
+                    placeholder="Courier Name"
+                    defaultValue={selectedOrder.courier_name || ''}
+                    onBlur={(e) => {
+                      supabase.from('orders').update({ courier_name: e.target.value }).eq('id', selectedOrder.id);
+                    }}
+                  />
+                  <Input
+                    placeholder="Tracking ID"
+                    defaultValue={selectedOrder.tracking_id || ''}
+                    onBlur={(e) => {
+                      supabase.from('orders').update({ tracking_id: e.target.value }).eq('id', selectedOrder.id);
+                    }}
+                  />
+                  <Select
+                    defaultValue={selectedOrder.delivery_status || 'pending'}
+                    onValueChange={(value) => {
+                      supabase.from('orders').update({ delivery_status: value }).eq('id', selectedOrder.id);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="picked">Picked Up</SelectItem>
+                      <SelectItem value="in_transit">In Transit</SelectItem>
+                      <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label>Order Items</Label>
+                <div className="mt-2 space-y-2">
+                  {Array.isArray(selectedOrder.items) && selectedOrder.items.map((item: any, index: number) => (
+                    <div key={index} className="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded">
+                      <span>{item.quantity}x {item.name} {item.weight && `(${item.weight})`}</span>
+                      <span className="font-medium">₹{item.price}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between p-2 bg-primary/10 rounded font-bold">
+                    <span>Total</span>
+                    <span>₹{Number(selectedOrder.total_amount).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {selectedOrder.order_notes && (
+                <div>
+                  <Label>Order Notes</Label>
+                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded text-sm">
+                    {selectedOrder.order_notes}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

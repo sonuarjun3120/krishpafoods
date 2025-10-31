@@ -8,14 +8,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { useCategories } from '@/hooks/useCategories';
-import { Category } from '@/services/supabaseContentService';
+import { useRealtimeCategories, Category } from '@/hooks/useRealtimeCategories';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const CategoryManagement = () => {
-  const { categories, loading, createCategory, updateCategory, deleteCategory } = useCategories();
+  const { categories, loading } = useRealtimeCategories();
   const { products } = useSupabaseProducts();
+  const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,7 +66,19 @@ export const CategoryManagement = () => {
       : 'Are you sure you want to delete this category?';
       
     if (confirm(confirmMessage)) {
-      await deleteCategory(id);
+      const { error } = await supabase.from('categories').delete().eq('id', id);
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete category",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Category Deleted",
+          description: "Category has been removed successfully",
+        });
+      }
     }
   };
 
@@ -76,26 +90,44 @@ export const CategoryManagement = () => {
       return;
     }
 
-    let success = false;
-    if (editingCategory) {
-      success = await updateCategory(editingCategory.id, {
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        icon: formData.icon,
-        image: formData.image.trim()
-      });
-    } else {
-      success = await createCategory({
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        icon: formData.icon,
-        image: formData.image.trim()
-      });
-    }
+    try {
+      if (editingCategory) {
+        const { error } = await supabase
+          .from('categories')
+          .update({
+            name: formData.name.trim(),
+            description: formData.description.trim(),
+            icon: formData.icon,
+            image: formData.image.trim()
+          })
+          .eq('id', editingCategory.id);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('categories')
+          .insert({
+            name: formData.name.trim(),
+            description: formData.description.trim(),
+            icon: formData.icon,
+            image: formData.image.trim()
+          });
+        
+        if (error) throw error;
+      }
 
-    if (success) {
       setShowForm(false);
       setFormData({ name: '', description: '', icon: 'Package', image: '' });
+      toast({
+        title: "Success",
+        description: editingCategory ? "Category updated successfully" : "Category created successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save category",
+        variant: "destructive",
+      });
     }
   };
 

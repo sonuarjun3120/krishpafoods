@@ -5,12 +5,12 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { DollarSign, ShoppingCart, Users, Package, TrendingUp, AlertTriangle } from 'lucide-react';
 import { useSupabaseAnalytics } from '@/hooks/useSupabaseAnalytics';
 import { useSupabaseProducts } from '@/hooks/useSupabaseProducts';
-import { useSupabaseOrders } from '@/hooks/useSupabaseOrders';
+import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
 
 export const DashboardOverview = () => {
   const { salesData, userAnalytics, loading: analyticsLoading } = useSupabaseAnalytics();
   const { products, loading: productsLoading } = useSupabaseProducts();
-  const { orders, loading: ordersLoading } = useSupabaseOrders();
+  const { orders, loading: ordersLoading } = useRealtimeOrders();
 
   const loading = analyticsLoading || productsLoading || ordersLoading;
 

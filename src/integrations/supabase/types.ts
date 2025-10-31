@@ -144,7 +144,11 @@ export type Database = {
       }
       orders: {
         Row: {
+          actual_delivery_date: string | null
+          courier_name: string | null
           created_at: string
+          delivery_status: string | null
+          estimated_delivery_date: string | null
           id: string
           items: Json
           order_notes: string | null
@@ -157,13 +161,18 @@ export type Database = {
           shipping_address: Json
           status: string
           total_amount: number
+          tracking_id: string | null
           updated_at: string
           user_email: string | null
           user_name: string
           user_phone: string
         }
         Insert: {
+          actual_delivery_date?: string | null
+          courier_name?: string | null
           created_at?: string
+          delivery_status?: string | null
+          estimated_delivery_date?: string | null
           id?: string
           items: Json
           order_notes?: string | null
@@ -176,13 +185,18 @@ export type Database = {
           shipping_address: Json
           status?: string
           total_amount: number
+          tracking_id?: string | null
           updated_at?: string
           user_email?: string | null
           user_name: string
           user_phone: string
         }
         Update: {
+          actual_delivery_date?: string | null
+          courier_name?: string | null
           created_at?: string
+          delivery_status?: string | null
+          estimated_delivery_date?: string | null
           id?: string
           items?: Json
           order_notes?: string | null
@@ -195,6 +209,7 @@ export type Database = {
           shipping_address?: Json
           status?: string
           total_amount?: number
+          tracking_id?: string | null
           updated_at?: string
           user_email?: string | null
           user_name?: string
@@ -381,6 +396,7 @@ export type Database = {
       }
       user_analytics: {
         Row: {
+          average_order_value: number | null
           created_at: string | null
           id: string
           last_order_date: string | null
@@ -394,6 +410,7 @@ export type Database = {
           user_phone: string | null
         }
         Insert: {
+          average_order_value?: number | null
           created_at?: string | null
           id?: string
           last_order_date?: string | null
@@ -407,6 +424,7 @@ export type Database = {
           user_phone?: string | null
         }
         Update: {
+          average_order_value?: number | null
           created_at?: string | null
           id?: string
           last_order_date?: string | null

@@ -8,40 +8,28 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, Eye, Edit, Plus, Image, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useRealtimePages } from '@/hooks/useRealtimePages';
 import { pageService, Page, ContentBlock } from '@/services/pageService';
 import { mediaService } from '@/services/mediaService';
 
 export const PageContentManagement = () => {
-  const [pages, setPages] = useState<Page[]>([]);
-  const [selectedPage, setSelectedPage] = useState<Page | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { pages: realtimePages, loading } = useRealtimePages();
+  const [pages, setPages] = useState<any[]>([]);
+  const [selectedPage, setSelectedPage] = useState<any>(null);
   const [availableMedia, setAvailableMedia] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadPages();
+    setPages(realtimePages as any[]);
+    if (realtimePages.length > 0 && !selectedPage) {
+      setSelectedPage(realtimePages[0]);
+    }
+  }, [realtimePages]);
+
+  useEffect(() => {
     loadMedia();
   }, []);
-
-  const loadPages = async () => {
-    setLoading(true);
-    try {
-      const pagesData = await pageService.getAllPages();
-      setPages(pagesData);
-      if (pagesData.length > 0) {
-        setSelectedPage(pagesData[0]);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load pages",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadMedia = async () => {
     try {
