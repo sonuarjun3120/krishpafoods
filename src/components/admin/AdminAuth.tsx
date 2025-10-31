@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +40,13 @@ export const AdminAuth: React.FC<AdminAuthProps> = ({ onLogin }) => {
 
       if (roleError || !roleData) {
         await supabase.auth.signOut();
-        throw new Error('You do not have admin privileges');
+        toast({
+          title: "Access Denied",
+          description: "You do not have admin privileges. Redirecting to home page...",
+          variant: "destructive",
+        });
+        setTimeout(() => navigate('/'), 2000);
+        return;
       }
 
       toast({
