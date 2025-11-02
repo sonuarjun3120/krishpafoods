@@ -254,100 +254,190 @@ export const OrderManagement = () => {
 
       {/* Order Details Dialog */}
       <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Order Details - #{selectedOrder?.order_number || 'N/A'}</DialogTitle>
+            <DialogTitle className="text-2xl">Order #{selectedOrder?.order_number || selectedOrder?.id.slice(0, 8)}</DialogTitle>
           </DialogHeader>
           {selectedOrder && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Customer Information</Label>
-                  <div className="mt-2 space-y-1 text-sm">
-                    <div><strong>Name:</strong> {selectedOrder.user_name}</div>
-                    <div><strong>Email:</strong> {selectedOrder.user_email || 'N/A'}</div>
-                    <div><strong>Phone:</strong> {selectedOrder.user_phone}</div>
-                  </div>
-                </div>
-                <div>
-                  <Label>Order Information</Label>
-                  <div className="mt-2 space-y-1 text-sm">
-                    <div><strong>Order Date:</strong> {new Date(selectedOrder.created_at).toLocaleString()}</div>
-                    <div><strong>Status:</strong> <Badge>{selectedOrder.status}</Badge></div>
-                    <div><strong>Payment:</strong> <Badge>{selectedOrder.payment_status}</Badge></div>
-                    <div><strong>Method:</strong> {selectedOrder.payment_method?.toUpperCase()}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label>Shipping Address</Label>
-                <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded text-sm">
-                  {selectedOrder.shipping_address?.streetAddress || selectedOrder.shipping_address?.address}<br />
-                  {selectedOrder.shipping_address?.city}, {selectedOrder.shipping_address?.state} {selectedOrder.shipping_address?.pincode || selectedOrder.shipping_address?.zipCode}
-                </div>
-              </div>
-
-              <div>
-                <Label>Delivery Tracking</Label>
-                <div className="mt-2 grid grid-cols-2 gap-4">
-                  <Input
-                    placeholder="Courier Name"
-                    defaultValue={selectedOrder.courier_name || ''}
-                    onBlur={(e) => {
-                      supabase.from('orders').update({ courier_name: e.target.value }).eq('id', selectedOrder.id);
-                    }}
-                  />
-                  <Input
-                    placeholder="Tracking ID"
-                    defaultValue={selectedOrder.tracking_id || ''}
-                    onBlur={(e) => {
-                      supabase.from('orders').update({ tracking_id: e.target.value }).eq('id', selectedOrder.id);
-                    }}
-                  />
-                  <Select
-                    defaultValue={selectedOrder.delivery_status || 'pending'}
-                    onValueChange={(value) => {
-                      supabase.from('orders').update({ delivery_status: value }).eq('id', selectedOrder.id);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="picked">Picked Up</SelectItem>
-                      <SelectItem value="in_transit">In Transit</SelectItem>
-                      <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <Label>Order Items</Label>
-                <div className="mt-2 space-y-2">
-                  {Array.isArray(selectedOrder.items) && selectedOrder.items.map((item: any, index: number) => (
-                    <div key={index} className="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded">
-                      <span>{item.quantity}x {item.name} {item.weight && `(${item.weight})`}</span>
-                      <span className="font-medium">₹{item.price}</span>
+              {/* Customer Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Customer Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-muted-foreground">Full Name</Label>
+                      <div className="font-medium mt-1">{selectedOrder.user_name}</div>
                     </div>
-                  ))}
-                  <div className="flex justify-between p-2 bg-primary/10 rounded font-bold">
-                    <span>Total</span>
-                    <span>₹{Number(selectedOrder.total_amount).toFixed(2)}</span>
+                    <div>
+                      <Label className="text-muted-foreground">Email</Label>
+                      <div className="font-medium mt-1">{selectedOrder.user_email || 'Not provided'}</div>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Phone Number</Label>
+                      <div className="font-medium mt-1">{selectedOrder.user_phone}</div>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Order Date</Label>
+                      <div className="font-medium mt-1">{new Date(selectedOrder.created_at).toLocaleString()}</div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              {selectedOrder.order_notes && (
-                <div>
-                  <Label>Order Notes</Label>
-                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900 rounded text-sm">
-                    {selectedOrder.order_notes}
+              {/* Product Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Product Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Array.isArray(selectedOrder.items) && selectedOrder.items.map((item: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="font-medium text-lg">{item.name}</div>
+                          {item.weight && <div className="text-sm text-muted-foreground">Weight: {item.weight}</div>}
+                          <div className="text-sm text-muted-foreground mt-1">Quantity: {item.quantity}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-lg">₹{item.price}</div>
+                          <div className="text-sm text-muted-foreground">₹{(parseFloat(item.price) / item.quantity).toFixed(2)} each</div>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center p-4 bg-primary/10 rounded-lg border-2 border-primary/20">
+                      <span className="font-bold text-lg">Total Amount</span>
+                      <span className="font-bold text-2xl">₹{Number(selectedOrder.total_amount).toFixed(2)}</span>
+                    </div>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+
+              {/* Payment Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Payment Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-muted-foreground">Payment Method</Label>
+                      <div className="font-medium mt-1">{selectedOrder.payment_method?.toUpperCase() || 'UPI'}</div>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Payment Status</Label>
+                      <div className="mt-1">
+                        <Badge variant={selectedOrder.payment_status === 'completed' ? 'default' : 'secondary'}>
+                          {selectedOrder.payment_status || 'Pending'}
+                        </Badge>
+                      </div>
+                    </div>
+                    {selectedOrder.razorpay_payment_id && (
+                      <div className="col-span-2">
+                        <Label className="text-muted-foreground">Payment ID</Label>
+                        <div className="font-medium mt-1 font-mono text-sm">{selectedOrder.razorpay_payment_id}</div>
+                      </div>
+                    )}
+                    {selectedOrder.razorpay_order_id && (
+                      <div className="col-span-2">
+                        <Label className="text-muted-foreground">Razorpay Order ID</Label>
+                        <div className="font-medium mt-1 font-mono text-sm">{selectedOrder.razorpay_order_id}</div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Delivery Details */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Delivery Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-muted-foreground">Shipping Address</Label>
+                    <div className="mt-2 p-4 bg-muted rounded-lg border">
+                      <div className="space-y-1">
+                        <div className="font-medium">{selectedOrder.shipping_address?.streetAddress || selectedOrder.shipping_address?.address}</div>
+                        <div>{selectedOrder.shipping_address?.city}, {selectedOrder.shipping_address?.state}</div>
+                        <div>PIN: {selectedOrder.shipping_address?.pincode || selectedOrder.shipping_address?.zipCode}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Courier Name</Label>
+                      <Input
+                        placeholder="Enter courier name"
+                        defaultValue={selectedOrder.courier_name || ''}
+                        onBlur={(e) => {
+                          supabase.from('orders').update({ courier_name: e.target.value }).eq('id', selectedOrder.id);
+                        }}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Tracking ID</Label>
+                      <Input
+                        placeholder="Enter tracking ID"
+                        defaultValue={selectedOrder.tracking_id || ''}
+                        onBlur={(e) => {
+                          supabase.from('orders').update({ tracking_id: e.target.value }).eq('id', selectedOrder.id);
+                        }}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label>Delivery Status</Label>
+                      <Select
+                        defaultValue={selectedOrder.delivery_status || 'pending'}
+                        onValueChange={(value) => {
+                          supabase.from('orders').update({ delivery_status: value }).eq('id', selectedOrder.id);
+                        }}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="picked">Picked Up</SelectItem>
+                          <SelectItem value="in_transit">In Transit</SelectItem>
+                          <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {selectedOrder.estimated_delivery_date && (
+                      <div>
+                        <Label className="text-muted-foreground">Estimated Delivery</Label>
+                        <div className="font-medium mt-1">{new Date(selectedOrder.estimated_delivery_date).toLocaleDateString()}</div>
+                      </div>
+                    )}
+                    {selectedOrder.actual_delivery_date && (
+                      <div>
+                        <Label className="text-muted-foreground">Actual Delivery</Label>
+                        <div className="font-medium mt-1">{new Date(selectedOrder.actual_delivery_date).toLocaleDateString()}</div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Order Notes */}
+              {selectedOrder.order_notes && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Order Notes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-4 bg-muted rounded-lg border">
+                      {selectedOrder.order_notes}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}
