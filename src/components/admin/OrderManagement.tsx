@@ -20,6 +20,7 @@ export const OrderManagement = () => {
   const [dateFilter, setDateFilter] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const filteredOrders = orders.filter(order => {
@@ -134,120 +135,238 @@ export const OrderManagement = () => {
               <p className="text-gray-500">No orders found.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Customer Details</TableHead>
-                  <TableHead>Shipping Address</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order) => {
-                  const shippingAddress = order.shipping_address || {};
-                  return (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">
-                        <div>
-                          <div>#{order.id.slice(0, 8)}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(order.created_at).toLocaleDateString()}
+            <div className="space-y-4">
+              {filteredOrders.map((order) => {
+                const shippingAddress = order.shipping_address || {};
+                const isExpanded = expandedOrderId === order.id;
+                
+                return (
+                  <Card key={order.id} className="overflow-hidden">
+                    <div className="p-6">
+                      {/* Order Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <div className="font-bold text-lg">Order #{order.order_number || order.id.slice(0, 8)}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {new Date(order.created_at).toLocaleString()}
+                            </div>
                           </div>
+                          <Badge variant={getStatusVariant(order.status)} className={getStatusColor(order.status)}>
+                            {order.status}
+                          </Badge>
                         </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className="text-right mr-4">
+                            <div className="text-2xl font-bold">₹{Number(order.total_amount).toFixed(2)}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {Array.isArray(order.items) ? order.items.length : 0} items
+                            </div>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                          >
+                            {isExpanded ? 'Hide Details' : 'Show Details'}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Quick Summary */}
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <Label className="text-muted-foreground text-xs">Customer</Label>
                           <div className="font-medium">{order.user_name}</div>
-                          <div className="text-sm text-muted-foreground">{order.user_email || 'No email'}</div>
                           <div className="text-sm text-muted-foreground">{order.user_phone}</div>
                         </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="text-sm max-w-48">
-                          <div>{shippingAddress.streetAddress || shippingAddress.address}</div>
-                          <div>{shippingAddress.city}, {shippingAddress.state}</div>
-                          <div>{shippingAddress.pincode || shippingAddress.zipCode}</div>
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium">
-                            {order.payment_method?.toUpperCase() || 'UPI'}
-                          </div>
+                        <div>
+                          <Label className="text-muted-foreground text-xs">Payment</Label>
+                          <div className="font-medium">{order.payment_method?.toUpperCase() || 'UPI'}</div>
                           <Badge 
                             variant={order.payment_status === 'completed' ? 'default' : 'secondary'}
-                            className={order.payment_status === 'completed' ? 'bg-green-100 text-green-800' : ''}
+                            className="mt-1"
                           >
                             {order.payment_status === 'completed' ? 'Paid' : 'Pending'}
                           </Badge>
-                          {order.razorpay_payment_id && (
-                            <div className="text-xs text-muted-foreground">
-                              ID: {order.razorpay_payment_id.slice(0, 10)}...
-                            </div>
+                        </div>
+                        <div>
+                          <Label className="text-muted-foreground text-xs">Delivery Status</Label>
+                          <div className="font-medium capitalize">{order.delivery_status || 'Pending'}</div>
+                          {order.tracking_id && (
+                            <div className="text-sm text-muted-foreground">Track: {order.tracking_id}</div>
                           )}
                         </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium">
-                            {Array.isArray(order.items) ? order.items.length : 0} items
+                      </div>
+
+                      {/* Expanded Details */}
+                      {isExpanded && (
+                        <div className="border-t pt-4 space-y-6">
+                          {/* Customer Details */}
+                          <div>
+                            <h3 className="font-semibold text-lg mb-3">Customer Details</h3>
+                            <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
+                              <div>
+                                <Label className="text-muted-foreground">Name</Label>
+                                <div className="font-medium mt-1">{order.user_name}</div>
+                              </div>
+                              <div>
+                                <Label className="text-muted-foreground">Email</Label>
+                                <div className="font-medium mt-1">{order.user_email || 'Not provided'}</div>
+                              </div>
+                              <div>
+                                <Label className="text-muted-foreground">Phone</Label>
+                                <div className="font-medium mt-1">{order.user_phone}</div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {Array.isArray(order.items) && order.items.slice(0, 2).map((item: any, index: number) => (
-                              <div key={index}>{item.quantity}x {item.name}</div>
-                            ))}
-                            {Array.isArray(order.items) && order.items.length > 2 && (
-                              <div>+{order.items.length - 2} more</div>
-                            )}
+
+                          {/* Product Details */}
+                          <div>
+                            <h3 className="font-semibold text-lg mb-3">Product Details</h3>
+                            <div className="space-y-2">
+                              {Array.isArray(order.items) && order.items.map((item: any, index: number) => (
+                                <div key={index} className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                                  <div className="flex-1">
+                                    <div className="font-medium">{item.name}</div>
+                                    {item.weight && <div className="text-sm text-muted-foreground">Weight: {item.weight}</div>}
+                                  </div>
+                                  <div className="text-center px-4">
+                                    <Label className="text-muted-foreground text-xs">Qty</Label>
+                                    <div className="font-medium">{item.quantity}</div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="font-bold">₹{item.price}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      ₹{(parseFloat(item.price) / item.quantity).toFixed(2)} each
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Payment Details */}
+                          <div>
+                            <h3 className="font-semibold text-lg mb-3">Payment Details</h3>
+                            <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                              <div>
+                                <Label className="text-muted-foreground">Payment Method</Label>
+                                <div className="font-medium mt-1">{order.payment_method?.toUpperCase() || 'UPI'}</div>
+                              </div>
+                              <div>
+                                <Label className="text-muted-foreground">Payment Status</Label>
+                                <div className="mt-1">
+                                  <Badge variant={order.payment_status === 'completed' ? 'default' : 'secondary'}>
+                                    {order.payment_status || 'Pending'}
+                                  </Badge>
+                                </div>
+                              </div>
+                              {order.razorpay_payment_id && (
+                                <div className="col-span-2">
+                                  <Label className="text-muted-foreground">Payment ID</Label>
+                                  <div className="font-mono text-sm mt-1">{order.razorpay_payment_id}</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Delivery Details */}
+                          <div>
+                            <h3 className="font-semibold text-lg mb-3">Delivery Details</h3>
+                            <div className="space-y-4">
+                              <div className="p-4 bg-muted rounded-lg">
+                                <Label className="text-muted-foreground">Shipping Address</Label>
+                                <div className="mt-2 space-y-1">
+                                  <div className="font-medium">{shippingAddress.streetAddress || shippingAddress.address}</div>
+                                  <div>{shippingAddress.city}, {shippingAddress.state}</div>
+                                  <div>PIN: {shippingAddress.pincode || shippingAddress.zipCode}</div>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                  <Label>Courier Name</Label>
+                                  <Input
+                                    placeholder="Enter courier"
+                                    defaultValue={order.courier_name || ''}
+                                    onBlur={(e) => {
+                                      supabase.from('orders').update({ courier_name: e.target.value }).eq('id', order.id);
+                                    }}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Tracking ID</Label>
+                                  <Input
+                                    placeholder="Enter tracking ID"
+                                    defaultValue={order.tracking_id || ''}
+                                    onBlur={(e) => {
+                                      supabase.from('orders').update({ tracking_id: e.target.value }).eq('id', order.id);
+                                    }}
+                                    className="mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <Label>Delivery Status</Label>
+                                  <Select
+                                    defaultValue={order.delivery_status || 'pending'}
+                                    onValueChange={(value) => {
+                                      supabase.from('orders').update({ delivery_status: value }).eq('id', order.id);
+                                    }}
+                                  >
+                                    <SelectTrigger className="mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="pending">Pending</SelectItem>
+                                      <SelectItem value="picked">Picked Up</SelectItem>
+                                      <SelectItem value="in_transit">In Transit</SelectItem>
+                                      <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                                      <SelectItem value="delivered">Delivered</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Order Notes */}
+                          {order.order_notes && (
+                            <div>
+                              <h3 className="font-semibold text-lg mb-3">Order Notes</h3>
+                              <div className="p-4 bg-muted rounded-lg">
+                                {order.order_notes}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-2 pt-4 border-t">
+                            <Label>Order Status:</Label>
+                            <Select
+                              value={order.status}
+                              onValueChange={(value) => handleStatusChange(order.id, value)}
+                            >
+                              <SelectTrigger className="w-40">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="processing">Processing</SelectItem>
+                                <SelectItem value="shipped">Shipped</SelectItem>
+                                <SelectItem value="delivered">Delivered</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
-                      </TableCell>
-                      
-                      <TableCell className="font-medium">
-                        ₹{Number(order.total_amount).toFixed(2)}
-                      </TableCell>
-                      
-                      <TableCell>
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) => handleStatusChange(order.id, value as Order['status'])}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue>
-                              <Badge variant={getStatusVariant(order.status)} className={getStatusColor(order.status)}>
-                                {order.status}
-                              </Badge>
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="shipped">Shipped</SelectItem>
-                            <SelectItem value="delivered">Delivered</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>
